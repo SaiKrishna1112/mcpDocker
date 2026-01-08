@@ -22,13 +22,30 @@ async def main():
 
             # List available tools
             tools_result = await session.list_tools()
-            print("Available tools:")
+            print("Available OxyLoans API tools:")
             for tool in tools_result.tools:
                 print(f"  - {tool.name}: {tool.description}")
 
-            # Call our Weather tool
-            result = await session.call_tool("get_alerts", arguments={"state":"CA"})
-            print(f"The weather alerts are = {result.content[0].text}")
+            print("\n--- Testing OxyLoans APIs ---")
+            
+            # Get trending products
+            products_result = await session.call_tool("get_trending_products", arguments={})
+            print(f"\nTrending products: {products_result.content[0].text[:200]}...")  # Show first 200 chars
+            
+            # Get active offers
+            offers_result = await session.call_tool("get_active_offers", arguments={})
+            print(f"\nActive offers: {offers_result.content[0].text}")
+            
+            # Test with sample customer ID (replace with real ID)
+            sample_customer_id = "12345"
+            
+            # Get user cart
+            cart_result = await session.call_tool("get_user_cart", arguments={"customer_id": sample_customer_id})
+            print(f"\nUser cart: {cart_result.content[0].text}")
+            
+            # Get user profile
+            profile_result = await session.call_tool("get_user_profile", arguments={"user_id": sample_customer_id})
+            print(f"\nUser profile: {profile_result.content[0].text}")
 
 
 if __name__ == "__main__":

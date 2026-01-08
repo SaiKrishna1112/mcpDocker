@@ -2,98 +2,148 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-
 # Create an MCP server
 mcp = FastMCP(
-    name="weather",
-    host="0.0.0.0",  # only used for SSE transport (localhost)
-    port=8001,  # only used for SSE transport (set this to any port)
+    name="oxyloans-api",
+    host="0.0.0.0",
+    port=8001,
 )
 
 # Constants
-NWS_API_BASE = "https://api.weather.gov"
-USER_AGENT = "weather-app/1.0"
+BASE_URL = "https://meta.oxyloans.com/api"
 
-
-async def make_nws_request(url: str) -> dict[str, Any] | None:
-    """Make a request to the NWS API with proper error handling."""
-    headers = {
-        "User-Agent": USER_AGENT,
-        "Accept": "application/geo+json"
-    }
+async def make_api_request(url: str, method: str = "GET", data: dict = None) -> dict[str, Any] | None:
+    """Generic API request handler."""
+    headers = {"Content-Type": "application/json"}
+    
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, headers=headers, timeout=30.0)
+            if method.upper() == "GET":
+                response = await client.get(url, headers=headers, timeout=30.0)
+            elif method.upper() == "POST":
+                response = await client.post(url, headers=headers, json=data, timeout=30.0)
+            else:
+                return {"error": "Unsupported method"}
+            
             response.raise_for_status()
             return response.json()
-        except Exception:
-            return None
-
-def format_alert(feature: dict) -> str:
-    """Format an alert feature into a readable string."""
-    props = feature["properties"]
-    return f"""
-    Event: {props.get('event', 'Unknown')}
-    Area: {props.get('areaDesc', 'Unknown')}
-    Severity: {props.get('severity', 'Unknown')}
-    Description: {props.get('description', 'No description available')}
-    Instructions: {props.get('instruction', 'No specific instructions provided')}
-    """
+        except Exception as e:
+            return {"error": str(e)}
 
 @mcp.tool()
-async def get_alerts(state: str) -> str:
-    """Get weather alerts for a US state.
-
+async def get_user_cart(customer_id: str) -> str:
+    """Get user's cart information.
+    
     Args:
-        state: Two-letter US state code (e.g. CA, NY)
+        customer_id: The customer ID
     """
-    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
-    data = await make_nws_request(url)
-
-    if not data or "features" not in data:
-        return "Unable to fetch alerts or no alerts found."
-
-    if not data["features"]:
-        return "No active alerts for this state."
-
-    alerts = [format_alert(feature) for feature in data["features"]]
-    return "\n---\n".join(alerts)
+    url = f"{BASE_URL}/cart-service/cart/userCartInfo?customerId={customer_id}"
+    data = await make_api_request(url)
+    
+    if "error" in data:
+        return f"Error fetching cart: {data['error']}"
+    
+    return str(data)
 
 @mcp.tool()
-async def get_forecast(latitude: float, longitude: float) -> str:
-    """Get weather forecast for a location.
-
+async def get_user_profile(user_id: str) -> str:
+    """Get user profile information.
+    
     Args:
-        latitude: Latitude of the location
-        longitude: Longitude of the location
+        user_id: The user ID
     """
-    # First get the forecast grid endpoint
-    points_url = f"{NWS_API_BASE}/points/{latitude},{longitude}"
-    points_data = await make_nws_request(points_url)
+    url = f"{BASE_URL}/users/{user_id}"
+    data = await make_api_request(url)
+    
+    if "error" in data:
+        return f"Error fetching profile: {data['error']}"
+    
+    return str(data)
 
-    if not points_data:
-        return "Unable to fetch forecast data for this location."
+@mcp.tool()
+async def get_trending_products() -> str:
+    """Get all trending products with details."""
+    url = "https://meta.oxyloans.com/api/product-service/showGroupItemsForCustomrs"
+    data = await make_api_request(url)
+    
+    if "error" in data:
+        return f"Error fetching products: {data['error']}"
+    
+    items = []
+    try:
+        for category in data:
+            for cat in category.get("categories", []):
+                for item in cat.get("itemsResponseDtoList", []):
+                    items.append({
+                        "id": item.get("itemId"),
+                        "name": item.get("itemName"),
+                        "price": item.get("itemPrice"),
+                        "mrp": item.get("itemMrp"),
+                        "image": item.get("itemImage"),
+                        "description": item.get("itemDescription"),
+                        "saveAmount": item.get("saveAmount"),
+                        "savePercentage": item.get("savePercentage"),
+                        "weight": item.get("weight"),
+                        "units": item.get("units"),
+                        "quantity": item.get("quantity"),
+                        "category": cat.get("categoryName"),
+                    })
+        return str(items)
+    except Exception as e:
+        return f"Error processing products: {str(e)}"
 
-    # Get the forecast URL from the points response
-    forecast_url = points_data["properties"]["forecast"]
-    forecast_data = await make_nws_request(forecast_url)
+@mcp.tool()
+async def get_active_offers() -> str:
+    """Get active combo offers."""
+    url = f"{BASE_URL}/product-service/getComboActiveInfo"
+    data = await make_api_request(url)
+    
+    if "error" in data:
+        return f"Error fetching offers: {data['error']}"
+    
+    return str(data)
 
-    if not forecast_data:
-        return "Unable to fetch detailed forecast."
+@mcp.tool()
+async def add_to_cart(customer_id: str, item_id: str, quantity: int) -> str:
+    """Add item to user's cart.
+    
+    Args:
+        customer_id: The customer ID
+        item_id: The item ID to add
+        quantity: Quantity to add
+    """
+    url = f"{BASE_URL}/cart-service/cart/addAndIncrementCart"
+    payload = {
+        "customerId": customer_id,
+        "itemId": item_id,
+        "quantity": quantity
+    }
+    data = await make_api_request(url, "POST", payload)
+    
+    if "error" in data:
+        return f"Error adding to cart: {data['error']}"
+    
+    return f"Item added to cart successfully: {data}"
 
-    # Format the periods into a readable forecast
-    periods = forecast_data["properties"]["periods"]
-    forecasts = []
-    for period in periods[:5]:  # Only show next 5 periods
-        forecast = f"""
-                {period['name']}:
-                Temperature: {period['temperature']}°{period['temperatureUnit']}
-                Wind: {period['windSpeed']} {period['windDirection']}
-                Forecast: {period['detailedForecast']}
-                """
-        forecasts.append(forecast)
-
-    return "\n---\n".join(forecasts)
+@mcp.tool()
+async def remove_from_cart(customer_id: str, item_id: str) -> str:
+    """Remove item from user's cart.
+    
+    Args:
+        customer_id: The customer ID
+        item_id: The item ID to remove
+    """
+    url = f"{BASE_URL}/cart-service/cart/remove"
+    payload = {
+        "customerId": customer_id,
+        "itemId": item_id
+    }
+    data = await make_api_request(url, "POST", payload)
+    
+    if "error" in data:
+        return f"Error removing from cart: {data['error']}"
+    
+    return "Item removed from cart successfully"
 
 # Run the server
 if __name__ == "__main__":
