@@ -1,0 +1,12 @@
+[project]
+name = "mcpcourse"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "langchain-openai>=1.1.7",
+    "mcp-use>=1.5.1",
+    "mcp[cli]>=1.25.0",
+    "nest-asyncio>=1.6.0",
+]
