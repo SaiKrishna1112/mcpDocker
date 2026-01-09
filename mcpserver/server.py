@@ -1,158 +1,172 @@
-from typing import Any
+from typing import List, Optional, Dict
 import httpx
+from pydantic import BaseModel, Field
 from mcp.server.fastmcp import FastMCP
 
-# Create an MCP server
+# =====================================================
+# MCP SERVER CONFIG
+# =====================================================
+
 mcp = FastMCP(
     name="oxyloans-api",
     host="0.0.0.0",
     port=8001,
 )
 
-# Constants
 BASE_URL = "https://meta.oxyloans.com/api"
 
-async def make_api_request(url: str, method: str = "GET", data: dict = None) -> dict[str, Any] | None:
-    """Generic API request handler."""
+# =====================================================
+# TOKEN STORE (REPLACE WITH DB / REDIS LATER)
+# =====================================================
+
+USER_TOKENS: Dict[str, str] = {
+    # Example
+    # "14996e93-46c9-46cb-a5fb-8050b8af17ab": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+"14996e93-46c9-46cb-a5fb-8050b8af17ab":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNDk5NmU5My00NmM5LTQ2Y2ItYTVmYi04MDUwYjhhZjE3YWIiLCJpYXQiOjE3NjczNjY0NjcsImV4cCI6MTc2ODIzMDQ2N30.SjLdZLFCDp8KDOoPdHrcjmPUdmLd9SItdaeXrBc-b5nJ7DemAPITCryBuZzGf5LtPkAuLn79xhGTvPTv_jPI4A"
+}
+
+
+def get_bearer_token(user_id: str) -> str:
+    """
+    Resolve bearer token for a user.
+    """
+    token = USER_TOKENS.get(user_id)
+    if not token:
+        raise ValueError("No bearer token found for user")
+    return token
+
+
+# =====================================================
+# AUTH-AWARE HTTP CLIENT
+# =====================================================
+
+async def api_get(url: str, user_id: Optional[str] = None):
+    headers = {}
+    if user_id:
+        headers["Authorization"] = f"Bearer {get_bearer_token(user_id)}"
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+
+async def api_post(url: str, payload: dict, user_id: Optional[str] = None):
     headers = {"Content-Type": "application/json"}
-    
-    async with httpx.AsyncClient() as client:
-        try:
-            if method.upper() == "GET":
-                response = await client.get(url, headers=headers, timeout=30.0)
-            elif method.upper() == "POST":
-                response = await client.post(url, headers=headers, json=data, timeout=30.0)
-            else:
-                return {"error": "Unsupported method"}
-            
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            return {"error": str(e)}
+    if user_id:
+        headers["Authorization"] = f"Bearer {get_bearer_token(user_id)}"
 
-@mcp.tool()
-async def get_user_cart(customer_id: str) -> str:
-    """Get user's cart information.
-    
-    Args:
-        customer_id: The customer ID
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+
+# =====================================================
+# SCHEMAS
+# =====================================================
+
+class Product(BaseModel):
+    item_id: str
+    name: str
+    price: float
+    mrp: float
+    image: Optional[str]
+    description: Optional[str]
+    category: Optional[str]
+
+
+class TrendingProductsResponse(BaseModel):
+    products: List[Product]
+    count: int
+
+
+class ActiveOffersResponse(BaseModel):
+    offers: list
+
+
+class CartActionResponse(BaseModel):
+    status: str
+    message: str
+
+
+# =====================================================
+# READ-ONLY TOOLS (SAFE)
+# =====================================================
+
+@mcp.tool(read_only=True)
+async def get_trending_products(
+    limit: int = Field(20, ge=1, le=100)
+) -> TrendingProductsResponse:
     """
-    url = f"{BASE_URL}/cart-service/cart/userCartInfo?customerId={customer_id}"
-    data = await make_api_request(url)
-    
-    if "error" in data:
-        return f"Error fetching cart: {data['error']}"
-    
-    return str(data)
-
-@mcp.tool()
-async def get_user_profile(user_id: str) -> str:
-    """Get user profile information.
-    
-    Args:
-        user_id: The user ID
+    Get trending products (public, no auth).
     """
-    url = f"{BASE_URL}/users/{user_id}"
-    data = await make_api_request(url)
-    
-    if "error" in data:
-        return f"Error fetching profile: {data['error']}"
-    
-    return str(data)
+    url = f"{BASE_URL}/product-service/showGroupItemsForCustomrs"
+    data = await api_get(url)
 
-@mcp.tool()
-async def get_trending_products() -> str:
-    """Get all trending products with details."""
-    url = "https://meta.oxyloans.com/api/product-service/showGroupItemsForCustomrs"
-    data = await make_api_request(url)
-    
-    if "error" in data:
-        return f"Error fetching products: {data['error']}"
-    
-    items = []
-    try:
-        for category in data:
-            for cat in category.get("categories", []):
-                for item in cat.get("itemsResponseDtoList", []):
-                    items.append({
-                        "id": item.get("itemId"),
-                        "name": item.get("itemName"),
-                        "price": item.get("itemPrice"),
-                        "mrp": item.get("itemMrp"),
-                        "image": item.get("itemImage"),
-                        "description": item.get("itemDescription"),
-                        "saveAmount": item.get("saveAmount"),
-                        "savePercentage": item.get("savePercentage"),
-                        "weight": item.get("weight"),
-                        "units": item.get("units"),
-                        "quantity": item.get("quantity"),
-                        "category": cat.get("categoryName"),
-                    })
-        return str(items)
-    except Exception as e:
-        return f"Error processing products: {str(e)}"
+    products: List[Product] = []
 
-@mcp.tool()
-async def get_active_offers() -> str:
-    """Get active combo offers."""
+    for group in data:
+        for category in group.get("categories", []):
+            for item in category.get("itemsResponseDtoList", []):
+                products.append(
+                    Product(
+                        item_id=item.get("itemId"),
+                        name=item.get("itemName"),
+                        price=item.get("itemPrice", 0),
+                        mrp=item.get("itemMrp", 0),
+                        image=item.get("itemImage"),
+                        description=item.get("itemDescription"),
+                        category=category.get("categoryName"),
+                    )
+                )
+
+    products = products[:limit]
+    return TrendingProductsResponse(products=products, count=len(products))
+
+
+@mcp.tool(read_only=True)
+async def get_active_offers() -> ActiveOffersResponse:
+    """
+    Get active combo offers (public).
+    """
     url = f"{BASE_URL}/product-service/getComboActiveInfo"
-    data = await make_api_request(url)
-    
-    if "error" in data:
-        return f"Error fetching offers: {data['error']}"
-    
-    return str(data)
+    data = await api_get(url)
+    return ActiveOffersResponse(offers=data)
+
+
+# =====================================================
+# USER-SCOPED WRITE TOOLS (AUTH REQUIRED)
+# =====================================================
 
 @mcp.tool()
-async def add_to_cart(customer_id: str, item_id: str, quantity: int) -> str:
-    """Add item to user's cart.
-    
-    Args:
-        customer_id: The customer ID
-        item_id: The item ID to add
-        quantity: Quantity to add
+async def add_to_cart(
+    user_id: str = Field(..., description="Authenticated user ID"),
+    item_id: str = Field(...),
+    quantity: int = Field(..., ge=1, le=10),
+) -> CartActionResponse:
+    """
+    Add item to user's cart (requires auth).
     """
     url = f"{BASE_URL}/cart-service/cart/addAndIncrementCart"
     payload = {
-        "customerId": customer_id,
+        "customerId": user_id,
         "itemId": item_id,
         "quantity": quantity
     }
-    data = await make_api_request(url, "POST", payload)
-    
-    if "error" in data:
-        return f"Error adding to cart: {data['error']}"
-    
-    return f"Item added to cart successfully: {data}"
 
-@mcp.tool()
-async def remove_from_cart(customer_id: str, item_id: str) -> str:
-    """Remove item from user's cart.
-    
-    Args:
-        customer_id: The customer ID
-        item_id: The item ID to remove
-    """
-    url = f"{BASE_URL}/cart-service/cart/remove"
-    payload = {
-        "customerId": customer_id,
-        "itemId": item_id
-    }
-    data = await make_api_request(url, "POST", payload)
-    
-    if "error" in data:
-        return f"Error removing from cart: {data['error']}"
-    
-    return "Item removed from cart successfully"
+    await api_post(url, payload, user_id=user_id)
 
-# Run the server
+    return CartActionResponse(
+        status="success",
+        message="Item added to cart"
+    )
+
+
+# =====================================================
+# SERVER START
+# =====================================================
+
 if __name__ == "__main__":
-    transport = "sse"
-    if transport == "stdio":
-        print("Running server with stdio transport")
-        mcp.run(transport="stdio")
-    elif transport == "sse":
-        print("Running server with SSE transport")
-        mcp.run(transport="sse")
-    else:
-        raise ValueError(f"Unknown transport: {transport}")
+    print("✅ MCP Server running with auth support (SSE, port 8001)")
+    mcp.run(transport="sse")

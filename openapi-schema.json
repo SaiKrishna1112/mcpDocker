@@ -1,0 +1,140 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OxyLoans API",
+    "version": "1.0.0",
+    "description": "API for OxyLoans e-commerce operations"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Get trending products",
+        "responses": {
+          "200": {
+            "description": "List of trending products"
+          }
+        }
+      }
+    },
+    "/cart/{customer_id}": {
+      "get": {
+        "summary": "Get user cart",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User cart information"
+          }
+        }
+      }
+    },
+    "/user/{user_id}": {
+      "get": {
+        "summary": "Get user profile",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile information"
+          }
+        }
+      }
+    },
+    "/offers": {
+      "get": {
+        "summary": "Get active offers",
+        "responses": {
+          "200": {
+            "description": "List of active offers"
+          }
+        }
+      }
+    },
+    "/cart/add": {
+      "post": {
+        "summary": "Add item to cart",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item added to cart"
+          }
+        }
+      }
+    },
+    "/cart/remove": {
+      "post": {
+        "summary": "Remove item from cart",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item removed from cart"
+          }
+        }
+      }
+    }
+  }
+}
