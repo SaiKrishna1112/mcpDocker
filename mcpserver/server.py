@@ -1,16 +1,19 @@
+import os
 from typing import List, Optional, Dict
 import httpx
 from pydantic import BaseModel, Field
 from mcp.server.fastmcp import FastMCP
 
 # =====================================================
-# MCP SERVER CONFIG
+# SERVER CONFIG (RENDER SAFE)
 # =====================================================
+
+PORT = int(os.environ.get("PORT", 8001))
 
 mcp = FastMCP(
     name="oxyloans-api",
     host="0.0.0.0",
-    port=8001,
+    port=PORT,
 )
 
 BASE_URL = "https://meta.oxyloans.com/api"
@@ -20,24 +23,17 @@ BASE_URL = "https://meta.oxyloans.com/api"
 # =====================================================
 
 USER_TOKENS: Dict[str, str] = {
-    # Example
-    # "14996e93-46c9-46cb-a5fb-8050b8af17ab": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-"14996e93-46c9-46cb-a5fb-8050b8af17ab":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNDk5NmU5My00NmM5LTQ2Y2ItYTVmYi04MDUwYjhhZjE3YWIiLCJpYXQiOjE3NjczNjY0NjcsImV4cCI6MTc2ODIzMDQ2N30.SjLdZLFCDp8KDOoPdHrcjmPUdmLd9SItdaeXrBc-b5nJ7DemAPITCryBuZzGf5LtPkAuLn79xhGTvPTv_jPI4A"
+    # "test-user": "REAL_OR_DUMMY_BEARER_TOKEN"
 }
 
-
 def get_bearer_token(user_id: str) -> str:
-    """
-    Resolve bearer token for a user.
-    """
     token = USER_TOKENS.get(user_id)
     if not token:
-        raise ValueError("No bearer token found for user")
+        raise ValueError("Bearer token not found for user")
     return token
 
-
 # =====================================================
-# AUTH-AWARE HTTP CLIENT
+# HTTP HELPERS
 # =====================================================
 
 async def api_get(url: str, user_id: Optional[str] = None):
@@ -50,7 +46,6 @@ async def api_get(url: str, user_id: Optional[str] = None):
         response.raise_for_status()
         return response.json()
 
-
 async def api_post(url: str, payload: dict, user_id: Optional[str] = None):
     headers = {"Content-Type": "application/json"}
     if user_id:
@@ -60,7 +55,6 @@ async def api_post(url: str, payload: dict, user_id: Optional[str] = None):
         response = await client.post(url, json=payload, headers=headers)
         response.raise_for_status()
         return response.json()
-
 
 # =====================================================
 # SCHEMAS
@@ -75,31 +69,27 @@ class Product(BaseModel):
     description: Optional[str]
     category: Optional[str]
 
-
 class TrendingProductsResponse(BaseModel):
     products: List[Product]
     count: int
 
-
 class ActiveOffersResponse(BaseModel):
     offers: list
-
 
 class CartActionResponse(BaseModel):
     status: str
     message: str
 
-
 # =====================================================
-# READ-ONLY TOOLS (SAFE)
+# TOOLS (NO read_only FLAG)
 # =====================================================
 
-@mcp.tool(read_only=True)
+@mcp.tool()
 async def get_trending_products(
     limit: int = Field(20, ge=1, le=100)
 ) -> TrendingProductsResponse:
     """
-    Get trending products (public, no auth).
+    Get trending products (public).
     """
     url = f"{BASE_URL}/product-service/showGroupItemsForCustomrs"
     data = await api_get(url)
@@ -124,8 +114,7 @@ async def get_trending_products(
     products = products[:limit]
     return TrendingProductsResponse(products=products, count=len(products))
 
-
-@mcp.tool(read_only=True)
+@mcp.tool()
 async def get_active_offers() -> ActiveOffersResponse:
     """
     Get active combo offers (public).
@@ -134,19 +123,14 @@ async def get_active_offers() -> ActiveOffersResponse:
     data = await api_get(url)
     return ActiveOffersResponse(offers=data)
 
-
-# =====================================================
-# USER-SCOPED WRITE TOOLS (AUTH REQUIRED)
-# =====================================================
-
 @mcp.tool()
 async def add_to_cart(
-    user_id: str = Field(..., description="Authenticated user ID"),
+    user_id: str = Field(..., description="User ID"),
     item_id: str = Field(...),
     quantity: int = Field(..., ge=1, le=10),
 ) -> CartActionResponse:
     """
-    Add item to user's cart (requires auth).
+    Add item to user's cart (auth required).
     """
     url = f"{BASE_URL}/cart-service/cart/addAndIncrementCart"
     payload = {
@@ -162,11 +146,10 @@ async def add_to_cart(
         message="Item added to cart"
     )
 
-
 # =====================================================
-# SERVER START
+# START SERVER
 # =====================================================
 
 if __name__ == "__main__":
-    print("✅ MCP Server running with auth support (SSE, port 8001)")
+    print(f"✅ MCP Server running on port {PORT}")
     mcp.run(transport="sse")
