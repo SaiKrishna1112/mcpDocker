@@ -27,12 +27,13 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY mcpserver/requirements.txt ./requirements.txt
+COPY requirements.txt .
 
-RUN pip install --no-cache-dir uv
+RUN pip install uv
+RUN uv venv
 RUN uv pip install -r requirements.txt
 
-COPY mcpserver/ ./mcpserver/
+COPY server.py .
 
 EXPOSE 8001
 
