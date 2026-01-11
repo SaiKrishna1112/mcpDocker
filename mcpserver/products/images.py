@@ -1,9 +1,11 @@
 from pydantic import BaseModel
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from ..utils.http import get
 
-mcp: FastMCP
-
+# mcp: FastMCP
+mcp = FastMCP(
+    name="oxyloans-api"
+)
 
 class ProductImage(BaseModel):
     imageUrl: str

@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from ..utils.http import post
 
-mcp: FastMCP  # injected from server.py
-
+# mcp: FastMCP  # injected from server.py
+mcp = FastMCP(
+    name="oxyloans-api"
+)
 
 # -------------------------
 # Schemas

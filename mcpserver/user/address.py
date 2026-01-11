@@ -2,11 +2,14 @@ import os
 import httpx
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from ..utils.http import get, post
 from ..auth.token_store import get_token_by_session
 
-mcp: FastMCP  # injected from server.py
+# mcp: FastMCP  # injected from server.py
+mcp = FastMCP(
+    name="oxyloans-api"
+)
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 

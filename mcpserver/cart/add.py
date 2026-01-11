@@ -1,11 +1,13 @@
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from ..utils.http import post
 from ..auth.token_store import get_token_by_session
 from .validation import validate_profile_before_cart
 
-mcp: FastMCP
-
+# mcp: FastMCP
+mcp = FastMCP(
+    name="oxyloans-api"
+)
 
 class AddCartResponse(BaseModel):
     success: bool
