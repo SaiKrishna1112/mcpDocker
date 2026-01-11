@@ -1,79 +1,43 @@
-#FROM python:3.11-slim
-#
-#WORKDIR /app
-#
-## Install uv
-#RUN pip install uv
-#
-## Copy project files
-#COPY pyproject.toml .
-#COPY uv.lock .
-#
-## Install dependencies
-#RUN uv sync --frozen
-#
-## Copy application code
-#COPY mcpserver/ ./mcpserver/
-#
-#EXPOSE 8001
-#
-#CMD ["uv", "run", "python", "mcpserver/server.py"]
-
-
-# -----------------------------
-# Base image
-# -----------------------------
 FROM python:3.11-slim
 
 # -----------------------------
-# Environment
+# Environment hardening
 # -----------------------------
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # -----------------------------
-# Install system dependencies
-# -----------------------------
-RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# -----------------------------
-# Install uv
-# -----------------------------
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Make uv available in PATH
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# -----------------------------
-# Set workdir
+# Working directory
 # -----------------------------
 WORKDIR /app
 
 # -----------------------------
-# Copy dependency files first
-# (better Docker cache)
+# Install uv (PATH-safe)
 # -----------------------------
-COPY requirements.txt .
+RUN pip install --no-cache-dir uv
 
 # -----------------------------
-# Install dependencies with uv
+# Copy dependency files first
+# (better Docker layer caching)
 # -----------------------------
-RUN uv pip install --system -r requirements.txt
+COPY pyproject.toml uv.lock ./
+
+# -----------------------------
+# Install dependencies (locked)
+# -----------------------------
+RUN uv sync --frozen
 
 # -----------------------------
 # Copy application code
 # -----------------------------
-COPY . .
+COPY mcpserver/ ./mcpserver/
 
 # -----------------------------
-# Expose port (Render / Docker)
+# Expose MCP port
 # -----------------------------
 EXPOSE 8001
 
 # -----------------------------
-# Start MCP server
+# Run MCP server
 # -----------------------------
-CMD ["uv", "run", "server.py"]
+CMD ["uv", "run", "mcpserver/server.py"]
