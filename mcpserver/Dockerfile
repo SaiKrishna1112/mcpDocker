@@ -1,20 +1,43 @@
+#FROM python:3.11-slim
+#
+#WORKDIR /app
+#
+## Install uv
+#RUN pip install uv
+#
+## Copy project files
+#COPY pyproject.toml .
+#COPY uv.lock .
+#
+## Install dependencies
+#RUN uv sync --frozen
+#
+## Copy application code
+#COPY mcpserver/ ./mcpserver/
+#
+#EXPOSE 8001
+#
+#CMD ["uv", "run", "python", "mcpserver/server.py"]
+
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install uv
+# Copy requirements file
+COPY requirements.txt .
+
+# Install dependencies using uv
 RUN pip install uv
-
-# Copy project files
-COPY pyproject.toml .
-COPY uv.lock .
-
-# Install dependencies
-RUN uv sync --frozen
+RUN uv venv
+RUN uv pip install -r requirements.txt
 
 # Copy application code
-COPY mcpserver/ ./mcpserver/
+COPY server.py .
+COPY client-sse.py .
 
+# Expose the port the server runs on
 EXPOSE 8001
 
+# Command to run the server
 CMD ["uv", "run", "python", "mcpserver/server.py"]
