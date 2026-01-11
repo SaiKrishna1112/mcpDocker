@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  live-api:
+    build:
+      context: .
+      dockerfile: Dockerfile-live
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    restart: unless-stopped
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: mcpserver/Dockerfile
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  simple-mcp:
+    build: .
+    command: ["uv", "run", "simple-mcp.py"]
+    ports:
+      - "8002:8000"
+    restart: unless-stopped

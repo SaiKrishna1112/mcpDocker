@@ -1,1 +1,4 @@
-mcp[cli]
+fastmcp
+httpx
+pydantic
+python-dotenv

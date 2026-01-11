@@ -15,6 +15,8 @@ RUN uv sync --frozen
 # Copy application code
 COPY . .
 
-EXPOSE 8000
+# Expose ports
+EXPOSE 8000 8001
 
+# Default command (can be overridden)
 CMD ["uv", "run", "live-api.py"]
