@@ -1,21 +1,21 @@
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
 WORKDIR /app
 
-# Copy requirements
-COPY mcpserver/requirements.txt ./requirements.txt
+# Copy requirements file
+COPY requirements.txt .
 
-# Install uv + deps
-RUN pip install --no-cache-dir uv
+# Install dependencies using uv
+RUN pip install uv
+RUN uv venv
 RUN uv pip install -r requirements.txt
 
-# Copy entire MCP server package
-COPY mcpserver/ ./mcpserver/
+# Copy application code
+COPY server.py .
+COPY client-sse.py .
 
+# Expose the port the server runs on
 EXPOSE 8001
 
-# Run MCP server
+# Command to run the server
 CMD ["uv", "run", "python", "mcpserver/server.py"]
