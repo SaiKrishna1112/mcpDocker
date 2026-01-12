@@ -27,7 +27,9 @@ class VerifyOTPResponse(BaseModel):
 # Tools
 # -------------------------
 
-@mcp.tool()
+@mcp.tool(
+    metadata={"visibility": "public"}
+)
 async def send_login_otp(
     country_code: str = Field(..., example="+91"),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),
