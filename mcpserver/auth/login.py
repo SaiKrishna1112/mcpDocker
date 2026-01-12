@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from utils.http import post
 from auth.token_store import create_session
 
@@ -27,11 +27,9 @@ class VerifyOTPResponse(BaseModel):
 # Tools
 # -------------------------
 
-@mcp.tool(
-    tags={"public", "utility"}
-)
+@mcp.tool(read_only=False)
 async def send_login_otp(
-    country_code: str = Field(..., example="+91"),
+    country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),
     registration_type: str = Field(..., pattern="^(sms|whatsapp)$"),
 ) -> SendOTPResponse:
@@ -62,7 +60,7 @@ async def send_login_otp(
     )
 
 
-@mcp.tool()
+@mcp.tool(read_only=False)
 async def verify_login_otp(
     country_code: str,
     mobile_or_whatsapp: str,

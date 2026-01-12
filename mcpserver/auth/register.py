@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from utils.http import post
 
 # mcp: FastMCP  # injected from server.py
@@ -21,9 +21,9 @@ class RegisterSendOTPResponse(BaseModel):
 # Tool
 # -------------------------
 
-@mcp.tool()
+@mcp.tool(read_only=False)
 async def send_register_otp(
-    country_code: str = Field(..., example="+91"),
+    country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),
     registration_type: str = Field(..., pattern="^(sms|whatsapp)$"),
     referrer_id: str | None = Field(
