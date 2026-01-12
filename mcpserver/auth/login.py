@@ -28,7 +28,7 @@ class VerifyOTPResponse(BaseModel):
 # -------------------------
 
 @mcp.tool(
-    metadata={"visibility": "public"}
+    tags={"public", "utility"}
 )
 async def send_login_otp(
     country_code: str = Field(..., example="+91"),
