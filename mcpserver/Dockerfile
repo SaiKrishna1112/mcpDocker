@@ -33,8 +33,8 @@ RUN pip install uv
 RUN uv venv
 RUN uv pip install -r requirements.txt
 
-COPY server.py .
+COPY . .
 
 EXPOSE 8001
 
-CMD ["uv", "run", "python", "-m", "mcpserver.server"]
+CMD ["uv", "run", "python", "server.py"]

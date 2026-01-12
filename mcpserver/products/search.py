@@ -1,8 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from mcp.server.fastmcp import FastMCP
-from ..utils.http import get
-from ..auth.token_store import get_token_by_session
+from utils.http import get
+from auth.token_store import get_token_by_session
 
 # mcp: FastMCP  # injected from server.py
 mcp = FastMCP(

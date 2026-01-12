@@ -1,5 +1,5 @@
-from ..utils.http import get
-from ..auth.token_store import get_token_by_session
+from utils.http import get
+from auth.token_store import get_token_by_session
 
 async def validate_profile_before_cart(session_id: str, customer_id: str):
     token = get_token_by_session(session_id)

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from mcp.server.fastmcp import FastMCP
-from ..utils.http import post
+from utils.http import post
 
 # mcp: FastMCP  # injected from server.py
 mcp = FastMCP(

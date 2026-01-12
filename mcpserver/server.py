@@ -164,22 +164,22 @@ mcp = FastMCP(
 )
 
 # ---- auth modules ----
-from .auth import login, register, verify
+from auth import login, register, verify
 login.mcp = mcp
 register.mcp = mcp
 verify.mcp = mcp
 
 # ---- products ----
-from .products import search
+from products import search
 search.mcp = mcp
 
 # ---- user ----
-from .user import profile, address
+from user import profile, address
 profile.mcp = mcp
 address.mcp = mcp
 
-from .cart import add, view, decrement, remove
-from .products import images, combo
+from cart import add, view, decrement, remove
+from products import images, combo
 
 add.mcp = mcp
 view.mcp = mcp

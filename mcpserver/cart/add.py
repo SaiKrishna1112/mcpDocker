@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
 from mcp.server.fastmcp import FastMCP
-from ..utils.http import post
-from ..auth.token_store import get_token_by_session
-from .validation import validate_profile_before_cart
+from utils.http import post
+from auth.token_store import get_token_by_session
+from cart.validation import validate_profile_before_cart
 
 # mcp: FastMCP
 mcp = FastMCP(
