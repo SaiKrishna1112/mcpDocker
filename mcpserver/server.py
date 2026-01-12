@@ -177,7 +177,7 @@ profile.mcp = mcp
 address.mcp = mcp
 
 from cart import add, view, decrement, remove
-from products import images, combo
+from products import images, combo, public
 
 add.mcp = mcp
 view.mcp = mcp
@@ -185,6 +185,7 @@ decrement.mcp = mcp
 remove.mcp = mcp
 images.mcp = mcp
 combo.mcp = mcp
+public.mcp = mcp
 
 
 if __name__ == "__main__":
