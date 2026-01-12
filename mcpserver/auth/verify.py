@@ -22,7 +22,7 @@ class VerifyOTPAndAuthResponse(BaseModel):
 # Tool
 # -------------------------------------------------
 
-@mcp.tool(read_only=False)
+@mcp.tool()
 async def verify_otp_and_authenticate(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     contact: str = Field(..., description="Mobile or WhatsApp number"),

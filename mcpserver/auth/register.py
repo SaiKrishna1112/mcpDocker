@@ -21,7 +21,7 @@ class RegisterSendOTPResponse(BaseModel):
 # Tool
 # -------------------------
 
-@mcp.tool(read_only=False)
+@mcp.tool()
 async def send_register_otp(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),

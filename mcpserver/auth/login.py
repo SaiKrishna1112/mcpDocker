@@ -27,7 +27,7 @@ class VerifyOTPResponse(BaseModel):
 # Tools
 # -------------------------
 
-@mcp.tool(read_only=False)
+@mcp.tool()
 async def send_login_otp(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),
@@ -60,7 +60,7 @@ async def send_login_otp(
     )
 
 
-@mcp.tool(read_only=False)
+@mcp.tool()
 async def verify_login_otp(
     country_code: str,
     mobile_or_whatsapp: str,
