@@ -2,3 +2,4 @@ fastmcp>=0.0.4
 httpx
 pydantic
 python-dotenv
+instructor

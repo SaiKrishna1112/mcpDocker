@@ -156,10 +156,99 @@
 
 
 from fastmcp import FastMCP
+import instructor
+from pydantic import BaseModel
+from typing import List
 
 mcp = FastMCP(
     name="oxyloans-api"
 )
+
+class APIResponse(BaseModel):
+    """Structured API response with instructor validation."""
+    success: bool
+    message: str
+    data: dict = {}
+
+class ProductSuggestion(BaseModel):
+    """AI-powered product suggestion."""
+    product_name: str
+    category: str
+    price_range: str
+    why_recommended: str
+
+@mcp.tool()
+async def hello_world() -> str:
+    """A simple test tool that returns a greeting."""
+    return "Hello from OxyLoans MCP Server!"
+
+@mcp.tool()
+async def get_smart_product_suggestions(
+    user_query: str,
+    budget: float = 1000.0
+) -> List[ProductSuggestion]:
+    """Get AI-powered product suggestions based on user query and budget."""
+    # Mock suggestions using instructor-like structured responses
+    suggestions = [
+        ProductSuggestion(
+            product_name="Basmati Rice 5kg",
+            category="Groceries",
+            price_range="₹400-600",
+            why_recommended="High quality, fits budget, essential staple"
+        ),
+        ProductSuggestion(
+            product_name="Organic Pulses Combo",
+            category="Groceries", 
+            price_range="₹300-500",
+            why_recommended="Nutritious, good value, popular choice"
+        )
+    ]
+    return suggestions
+
+@mcp.resource("oxyloans://api-docs")
+async def get_api_docs() -> str:
+    """OxyLoans API documentation and usage examples."""
+    return """
+# OxyLoans MCP Server API Documentation
+
+## Available Tools:
+
+### Authentication
+- `send_login_otp`: Send OTP for login via SMS/WhatsApp
+- `verify_login_otp`: Verify OTP and get session
+- `send_register_otp`: Send OTP for registration
+- `verify_otp_and_authenticate`: Verify OTP for login/register
+
+### Products
+- `dynamic_product_search`: Search products (requires session)
+- `get_product_images`: Get product images
+- `get_combo_item_details`: Get combo product details
+
+### User Management
+- `get_customer_profile`: Get user profile
+- `update_customer_profile`: Update user profile
+- `view_address_list`: View saved addresses
+- `add_address`: Add new address
+
+### Cart Operations
+- `add_to_cart`: Add items to cart
+- `view_user_cart`: View cart contents
+- `decrement_cart_item`: Decrease item quantity
+- `remove_cart_item`: Remove item from cart
+
+## Usage Flow:
+1. Send OTP using `send_login_otp` or `send_register_otp`
+2. Verify OTP using `verify_login_otp` or `verify_otp_and_authenticate`
+3. Use the returned session_id for authenticated operations
+4. Search products, manage cart, update profile as needed
+
+## Example:
+```
+1. send_login_otp(country_code="+91", mobile_or_whatsapp="9876543210", registration_type="sms")
+2. verify_login_otp(..., session_id from step 1)
+3. dynamic_product_search(q="rice", session_id=session_from_step2)
+```
+"""
 
 # ---- auth modules ----
 from auth import login, register, verify
