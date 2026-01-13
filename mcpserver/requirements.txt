@@ -3,3 +3,4 @@ httpx
 pydantic
 python-dotenv
 instructor
+mcp-inspector

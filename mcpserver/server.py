@@ -156,54 +156,74 @@
 
 
 from fastmcp import FastMCP
-import instructor
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Optional
 
-mcp = FastMCP(
-    name="oxyloans-api"
-)
 
-class APIResponse(BaseModel):
-    """Structured API response with instructor validation."""
-    success: bool
-    message: str
-    data: dict = {}
+mcp = FastMCP(name="oxyloans-api")
 
 class ProductSuggestion(BaseModel):
-    """AI-powered product suggestion."""
     product_name: str
     category: str
-    price_range: str
+    price: float
+    mrp: float
+    savings: str
+    item_id: str
     why_recommended: str
 
 @mcp.tool()
 async def hello_world() -> str:
-    """A simple test tool that returns a greeting."""
-    return "Hello from OxyLoans MCP Server!"
+    """Test connectivity to OxyLoans MCP Server."""
+    return "OxyLoans MCP Server is running!"
 
 @mcp.tool()
 async def get_smart_product_suggestions(
-    user_query: str,
-    budget: float = 1000.0
+    query: str = Field(..., min_length=1, description="Product search query"),
+    session_id: str = Field(..., description="User session ID from login"),
+    budget: float = Field(1000.0, gt=0, description="Maximum budget in INR")
 ) -> List[ProductSuggestion]:
-    """Get AI-powered product suggestions based on user query and budget."""
-    # Mock suggestions using instructor-like structured responses
-    suggestions = [
-        ProductSuggestion(
-            product_name="Basmati Rice 5kg",
-            category="Groceries",
-            price_range="₹400-600",
-            why_recommended="High quality, fits budget, essential staple"
-        ),
-        ProductSuggestion(
-            product_name="Organic Pulses Combo",
-            category="Groceries", 
-            price_range="₹300-500",
-            why_recommended="Nutritious, good value, popular choice"
+    """Get AI-powered product suggestions using OxyLoans API."""
+    from auth.token_store import get_token_by_session
+    from utils.http import get
+    
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("Invalid session. Please login first.")
+    
+    try:
+        data = await get(
+            "/api/product-service/dynamicSearch",
+            params={"q": query},
+            bearer_token=token
         )
-    ]
-    return suggestions
+        
+        suggestions = []
+        for category in data.get("items", []):
+            category_name = category.get("categoryName", "General")
+            
+            for item in category.get("itemsResponseDtoList", []):
+                price = float(item.get("itemPrice", 0))
+                mrp = float(item.get("itemMrp", 0))
+                
+                if price <= budget and price > 0:
+                    save_pct = ((mrp - price) / mrp * 100) if mrp > 0 else 0
+                    
+                    suggestions.append(ProductSuggestion(
+                        product_name=item.get("itemName", "Unknown Product"),
+                        category=category_name,
+                        price=price,
+                        mrp=mrp,
+                        savings=f"{save_pct:.0f}% off" if save_pct > 0 else "No discount",
+                        item_id=item.get("itemId", ""),
+                        why_recommended=f"Matches '{query}', within ₹{budget} budget, {save_pct:.0f}% savings"
+                    ))
+        
+        # Sort by savings percentage and return top 5
+        suggestions.sort(key=lambda x: float(x.savings.replace('% off', '').replace('No discount', '0')), reverse=True)
+        return suggestions[:5]
+        
+    except Exception as e:
+        raise ValueError(f"Failed to fetch suggestions: {str(e)}")
 
 @mcp.resource("oxyloans://api-docs")
 async def get_api_docs() -> str:
