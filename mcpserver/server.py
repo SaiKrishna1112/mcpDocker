@@ -177,7 +177,7 @@ async def hello_world() -> str:
     return "OxyLoans MCP Server is running!"
 
 @mcp.tool()
-async def get_smart_product_suggestions(
+async def get_product_suggestions(
     query: str = Field(..., min_length=1, description="Product search query"),
     session_id: str = Field(..., description="User session ID from login"),
     budget: float = Field(1000.0, gt=0, description="Maximum budget in INR")
