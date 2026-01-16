@@ -157,8 +157,8 @@
 
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
-from typing import List, Optional
-
+from typing import List, Optional, Any
+import httpx
 
 mcp = FastMCP(name="oxyloans-api")
 
@@ -170,6 +170,25 @@ class ProductSuggestion(BaseModel):
     savings: str
     item_id: str
     why_recommended: str
+
+
+async def make_api_request(url: str, method: str = "GET", data: dict = None) -> dict[str, Any] | None:
+    """Generic API request handler."""
+    headers = {"Content-Type": "application/json"}
+
+    async with httpx.AsyncClient() as client:
+        try:
+            if method.upper() == "GET":
+                response = await client.get(url, headers=headers, timeout=30.0)
+            elif method.upper() == "POST":
+                response = await client.post(url, headers=headers, json=data, timeout=30.0)
+            else:
+                return {"error": "Unsupported method"}
+
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            return {"error": str(e)}
 
 @mcp.tool()
 async def hello_world() -> str:
@@ -224,6 +243,39 @@ async def get_product_suggestions(
         
     except Exception as e:
         raise ValueError(f"Failed to fetch suggestions: {str(e)}")
+
+
+@mcp.tool()
+async def get_trending_products() -> str:
+    """Get all trending products with details."""
+    url = "https://meta.oxyloans.com/api/product-service/showGroupItemsForCustomrs"
+    data = await make_api_request(url)
+
+    if "error" in data:
+        return f"Error fetching products: {data['error']}"
+
+    items = []
+    try:
+        for category in data:
+            for cat in category.get("categories", []):
+                for item in cat.get("itemsResponseDtoList", []):
+                    items.append({
+                        "id": item.get("itemId"),
+                        "name": item.get("itemName"),
+                        "price": item.get("itemPrice"),
+                        "mrp": item.get("itemMrp"),
+                        "image": item.get("itemImage"),
+                        "description": item.get("itemDescription"),
+                        "saveAmount": item.get("saveAmount"),
+                        "savePercentage": item.get("savePercentage"),
+                        "weight": item.get("weight"),
+                        "units": item.get("units"),
+                        "quantity": item.get("quantity"),
+                        "category": cat.get("categoryName"),
+                    })
+        return str(items)
+    except Exception as e:
+        return f"Error processing products: {str(e)}"
 
 @mcp.resource("oxyloans://api-docs")
 async def get_api_docs() -> str:
