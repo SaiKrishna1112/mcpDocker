@@ -246,36 +246,29 @@ async def get_product_suggestions(
 
 
 @mcp.tool()
-async def get_trending_products() -> str:
-    """Get all trending products with details."""
+async def get_trending_products(limit: int = Field(50, ge=1, le=200)) -> str:
+    """Get trending products (no auth required). Returns product list with prices, discounts, and details."""
     url = "https://meta.oxyloans.com/api/product-service/showGroupItemsForCustomrs"
     data = await make_api_request(url)
 
     if "error" in data:
-        return f"Error fetching products: {data['error']}"
+        return f"Error: {data['error']}"
 
     items = []
-    try:
-        for category in data:
-            for cat in category.get("categories", []):
-                for item in cat.get("itemsResponseDtoList", []):
-                    items.append({
-                        "id": item.get("itemId"),
-                        "name": item.get("itemName"),
-                        "price": item.get("itemPrice"),
-                        "mrp": item.get("itemMrp"),
-                        "image": item.get("itemImage"),
-                        "description": item.get("itemDescription"),
-                        "saveAmount": item.get("saveAmount"),
-                        "savePercentage": item.get("savePercentage"),
-                        "weight": item.get("weight"),
-                        "units": item.get("units"),
-                        "quantity": item.get("quantity"),
-                        "category": cat.get("categoryName"),
-                    })
-        return str(items)
-    except Exception as e:
-        return f"Error processing products: {str(e)}"
+    for category in data:
+        for cat in category.get("categories", []):
+            for item in cat.get("itemsResponseDtoList", []):
+                items.append({
+                    "id": item.get("itemId"),
+                    "name": item.get("itemName"),
+                    "price": item.get("itemPrice"),
+                    "mrp": item.get("itemMrp"),
+                    "save": f"{item.get('savePercentage', 0)}%",
+                    "category": cat.get("categoryName"),
+                })
+                if len(items) >= limit:
+                    break
+    return str(items[:limit])
 
 @mcp.resource("oxyloans://api-docs")
 async def get_api_docs() -> str:
@@ -283,43 +276,40 @@ async def get_api_docs() -> str:
     return """
 # OxyLoans MCP Server API Documentation
 
-## Available Tools:
+## Public APIs (No Auth Required):
+- `get_trending_products`: Browse all trending products with prices, discounts, and details
+- `hello_world`: Test server connectivity
 
-### Authentication
-- `send_login_otp`: Send OTP for login via SMS/WhatsApp
-- `verify_login_otp`: Verify OTP and get session
-- `send_register_otp`: Send OTP for registration
+## Authentication Required:
+
+### Auth Flow
+- `send_login_otp`: Send OTP via SMS/WhatsApp
+- `verify_login_otp`: Verify OTP and get session_id
+- `send_register_otp`: Send OTP for new registration
 - `verify_otp_and_authenticate`: Verify OTP for login/register
 
-### Products
-- `dynamic_product_search`: Search products (requires session)
+### Products (Auth)
+- `dynamic_product_search`: Search products by query
+- `get_product_suggestions`: AI-powered product recommendations
 - `get_product_images`: Get product images
-- `get_combo_item_details`: Get combo product details
+- `get_combo_item_details`: Get combo details
 
 ### User Management
 - `get_customer_profile`: Get user profile
-- `update_customer_profile`: Update user profile
+- `update_customer_profile`: Update profile
 - `view_address_list`: View saved addresses
 - `add_address`: Add new address
 
 ### Cart Operations
 - `add_to_cart`: Add items to cart
 - `view_user_cart`: View cart contents
-- `decrement_cart_item`: Decrease item quantity
-- `remove_cart_item`: Remove item from cart
+- `decrement_cart_item`: Decrease quantity
+- `remove_cart_item`: Remove item
 
-## Usage Flow:
-1. Send OTP using `send_login_otp` or `send_register_otp`
-2. Verify OTP using `verify_login_otp` or `verify_otp_and_authenticate`
-3. Use the returned session_id for authenticated operations
-4. Search products, manage cart, update profile as needed
-
-## Example:
-```
-1. send_login_otp(country_code="+91", mobile_or_whatsapp="9876543210", registration_type="sms")
-2. verify_login_otp(..., session_id from step 1)
-3. dynamic_product_search(q="rice", session_id=session_from_step2)
-```
+## Quick Start:
+1. Browse products: `get_trending_products()`
+2. Login: `send_login_otp()` → `verify_login_otp()`
+3. Shop: `dynamic_product_search()` → `add_to_cart()`
 """
 
 # ---- auth modules ----
