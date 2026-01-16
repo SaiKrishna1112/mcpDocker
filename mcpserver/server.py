@@ -235,10 +235,14 @@ async def get_api_docs() -> str:
 ## Public APIs (No Auth Required):
 - `get_trending_products`: Browse all trending products with prices, discounts, and details
 - `hello_world`: Test server connectivity
+- `simple_login`: Quick login/register with mobile number (no OTP)
 
 ## Authentication Required:
 
-### Auth Flow
+### Auth Flow (Simple)
+- `simple_login`: Login/register instantly with mobile number
+
+### Auth Flow (OTP-based)
 - `send_login_otp`: Send OTP via SMS/WhatsApp
 - `verify_login_otp`: Verify OTP and get session_id
 - `send_register_otp`: Send OTP for new registration
@@ -272,9 +276,11 @@ async def get_api_docs() -> str:
 import auth.login as login
 import auth.register as register
 import auth.verify as verify
+import auth.simple_login as simple_login
 login.register_tools(mcp)
 register.register_tools(mcp)
 verify.register_tools(mcp)
+simple_login.register_tools(mcp)
 
 # ---- products ----
 import products.search as search
