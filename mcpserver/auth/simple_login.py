@@ -8,7 +8,6 @@ class SimpleLoginResponse(BaseModel):
     user_id: str
     mobile_number: str
     session_id: str
-    access_token: str
     message: str
 
 async def simple_login(
@@ -38,7 +37,6 @@ async def simple_login(
         user_id=user_id,
         mobile_number=data["mobileNumber"],
         session_id=session_id,
-        access_token=access_token,
         message=data["message"]
     )
 
