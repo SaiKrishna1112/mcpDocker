@@ -1,12 +1,8 @@
 from pydantic import BaseModel
-from fastmcp import FastMCP
 from utils.http import get
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 class ComboItem(BaseModel):
     individualItemId: str
@@ -28,7 +24,6 @@ class ComboResponse(BaseModel):
     items: list[ComboItem]
 
 
-@mcp.tool()
 async def get_combo_item_details(
     session_id: str,
     item_id: str,
@@ -47,3 +42,9 @@ async def get_combo_item_details(
         minQty=data["minQty"],
         items=[ComboItem(**i) for i in data["items"]],
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(get_combo_item_details)

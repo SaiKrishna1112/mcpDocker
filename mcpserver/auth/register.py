@@ -1,11 +1,7 @@
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import post
 
-# mcp: FastMCP  # injected from server.py
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 # -------------------------
 # Schemas
@@ -21,7 +17,6 @@ class RegisterSendOTPResponse(BaseModel):
 # Tool
 # -------------------------
 
-@mcp.tool()
 async def send_register_otp(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),
@@ -57,3 +52,9 @@ async def send_register_otp(
         salt=data["salt"],
         otpGeneratedTime=data["otpGeneratedTime"],
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(send_register_otp)

@@ -1,20 +1,15 @@
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import post
 from auth.token_store import get_token_by_session
 from cart.validation import validate_profile_before_cart
 
-# mcp: FastMCP
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 class AddCartResponse(BaseModel):
     success: bool
     errorMessage: str | None
 
 
-@mcp.tool()
 async def add_to_cart(
     session_id: str,
     customer_id: str,
@@ -48,3 +43,9 @@ async def add_to_cart(
         success=data.get("success", True),
         errorMessage=data.get("errorMessage"),
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(add_to_cart)

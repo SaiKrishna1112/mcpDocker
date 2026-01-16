@@ -2,14 +2,10 @@ import os
 import httpx
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import get, post
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP  # injected from server.py
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
@@ -79,7 +75,6 @@ async def geocode_address(address: str, pincode: str) -> tuple[str, str]:
 # Tools
 # -------------------------------------------------
 
-@mcp.tool()
 async def view_address_list(
     session_id: str,
     customer_id: str,
@@ -117,7 +112,6 @@ async def view_address_list(
     ]
 
 
-@mcp.tool()
 async def add_address(
     session_id: str,
     customer_id: str,
@@ -157,3 +151,10 @@ async def add_address(
         success=data.get("success", True),
         message=data.get("message", "Address added successfully"),
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(view_address_list)
+    mcp.tool()(add_address)

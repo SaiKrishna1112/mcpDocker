@@ -1,13 +1,9 @@
 from typing import List
 from pydantic import BaseModel
-from fastmcp import FastMCP
 from utils.http import get
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 class CartItem(BaseModel):
     cartId: str
@@ -38,7 +34,6 @@ class ViewCartResponse(BaseModel):
     totalGstAmountToPay: float
 
 
-@mcp.tool()
 async def view_user_cart(
     session_id: str,
     customer_id: str,
@@ -67,3 +62,9 @@ async def view_user_cart(
         discountedByFreeItems=data.get("discountedByFreeItems"),
         totalGstAmountToPay=data.get("totalGstAmountToPay"),
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(view_user_cart)

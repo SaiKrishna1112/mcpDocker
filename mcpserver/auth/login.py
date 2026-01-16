@@ -1,33 +1,18 @@
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import post
 from auth.token_store import create_session
 
-# mcp: FastMCP  # injected from server.py
-
-mcp = FastMCP(
-    name="oxyloans-api"
-)
-# -------------------------
-# Schemas
-# -------------------------
+mcp = None  # Will be injected from server.py
 
 class SendOTPResponse(BaseModel):
     otpSession: str
     salt: str
     otpGeneratedTime: str
 
-
 class VerifyOTPResponse(BaseModel):
     message: str
     session_id: str
 
-
-# -------------------------
-# Tools
-# -------------------------
-
-@mcp.tool()
 async def send_login_otp(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     mobile_or_whatsapp: str = Field(..., description="Mobile or WhatsApp number"),
@@ -59,8 +44,6 @@ async def send_login_otp(
         otpGeneratedTime=data["otpGeneratedTime"],
     )
 
-
-@mcp.tool()
 async def verify_login_otp(
     country_code: str,
     mobile_or_whatsapp: str,
@@ -107,11 +90,15 @@ async def verify_login_otp(
         raise ValueError("Only CUSTOMER users are allowed")
 
     access_token = data["accessToken"]
-
-    # userId not returned → backend derives it from token
     session_id = create_session("CUSTOMER", access_token)
 
     return VerifyOTPResponse(
         message="Login successful",
         session_id=session_id,
     )
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(send_login_otp)
+    mcp.tool()(verify_login_otp)

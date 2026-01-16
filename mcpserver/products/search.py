@@ -1,13 +1,9 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import get
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP  # injected from server.py
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 # -------------------------------------------------
 # Schemas
@@ -39,7 +35,6 @@ class DynamicSearchResponse(BaseModel):
 # Tool
 # -------------------------------------------------
 
-@mcp.tool()
 async def dynamic_product_search(
     q: str = Field(..., min_length=1, description="Search keyword"),
     session_id: str = Field(
@@ -96,3 +91,9 @@ async def dynamic_product_search(
         total_items=len(results),
         items=results,
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(dynamic_product_search)

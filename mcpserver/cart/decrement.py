@@ -1,19 +1,14 @@
 from pydantic import BaseModel
-from fastmcp import FastMCP
 from utils.http import post
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 class DecrementCartResponse(BaseModel):
     success: bool
     errorMessage: str | None
 
 
-@mcp.tool()
 async def decrement_cart_item(
     session_id: str,
     customer_id: str,
@@ -36,3 +31,9 @@ async def decrement_cart_item(
         success=data.get("success", True),
         errorMessage=data.get("errorMessage"),
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(decrement_cart_item)

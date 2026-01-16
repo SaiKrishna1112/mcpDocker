@@ -1,11 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import get
 
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp: FastMCP  # injected from server.py
 
 class Product(BaseModel):
     item_id: str
@@ -20,7 +17,6 @@ class TrendingProductsResponse(BaseModel):
     products: List[Product]
     count: int
 
-@mcp.tool()
 async def get_trending_products(
     limit: int = Field(20, ge=1, le=100, description="Number of products to return")
 ) -> TrendingProductsResponse:
@@ -51,3 +47,8 @@ async def get_trending_products(
 
     products = products[:limit]
     return TrendingProductsResponse(products=products, count=len(products))
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(get_trending_products)

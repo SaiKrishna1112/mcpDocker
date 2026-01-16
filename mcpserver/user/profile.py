@@ -1,13 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from fastmcp import FastMCP
 from utils.http import get, post
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP  # injected from server.py
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 # -------------------------------------------------
 # Schemas
@@ -44,7 +40,6 @@ class UpdateProfileResponse(BaseModel):
 # Tools
 # -------------------------------------------------
 
-@mcp.tool()
 async def get_customer_profile(
     session_id: str = Field(...),
     customer_id: str = Field(...),
@@ -82,7 +77,6 @@ async def get_customer_profile(
     )
 
 
-@mcp.tool()
 async def update_customer_profile(
     session_id: str,
     customer_id: str,
@@ -120,3 +114,10 @@ async def update_customer_profile(
         success=data.get("success", True),
         message=data.get("message", "Profile updated successfully"),
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(get_customer_profile)
+    mcp.tool()(update_customer_profile)

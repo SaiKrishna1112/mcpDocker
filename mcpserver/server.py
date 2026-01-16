@@ -157,8 +157,7 @@
 
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
-from typing import List, Optional, Any
-import httpx
+from typing import List, Optional
 
 mcp = FastMCP(name="oxyloans-api")
 
@@ -171,24 +170,6 @@ class ProductSuggestion(BaseModel):
     item_id: str
     why_recommended: str
 
-
-async def make_api_request(url: str, method: str = "GET", data: dict = None) -> dict[str, Any] | None:
-    """Generic API request handler."""
-    headers = {"Content-Type": "application/json"}
-
-    async with httpx.AsyncClient() as client:
-        try:
-            if method.upper() == "GET":
-                response = await client.get(url, headers=headers, timeout=30.0)
-            elif method.upper() == "POST":
-                response = await client.post(url, headers=headers, json=data, timeout=30.0)
-            else:
-                return {"error": "Unsupported method"}
-
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            return {"error": str(e)}
 
 @mcp.tool()
 async def hello_world() -> str:
@@ -248,12 +229,10 @@ async def get_product_suggestions(
 @mcp.tool()
 async def get_trending_products(limit: int = Field(50, ge=1, le=200)) -> str:
     """Get trending products (no auth required). Returns product list with prices, discounts, and details."""
-    url = "https://meta.oxyloans.com/api/product-service/showGroupItemsForCustomrs"
-    data = await make_api_request(url)
-
-    if "error" in data:
-        return f"Error: {data['error']}"
-
+    from utils.http import get
+    
+    data = await get("/product-service/showGroupItemsForCustomrs", params={})
+    
     items = []
     for category in data:
         for cat in category.get("categories", []):
@@ -313,30 +292,40 @@ async def get_api_docs() -> str:
 """
 
 # ---- auth modules ----
-from auth import login, register, verify
-login.mcp = mcp
-register.mcp = mcp
-verify.mcp = mcp
+import auth.login as login
+import auth.register as register
+import auth.verify as verify
+login.register_tools(mcp)
+register.register_tools(mcp)
+verify.register_tools(mcp)
 
 # ---- products ----
-from products import search
-search.mcp = mcp
+import products.search as search
+import products.public as public
+search.register_tools(mcp)
+public.register_tools(mcp)
 
 # ---- user ----
-from user import profile, address
-profile.mcp = mcp
-address.mcp = mcp
+import user.profile as profile
+import user.address as address
+profile.register_tools(mcp)
+address.register_tools(mcp)
 
-from cart import add, view, decrement, remove
-from products import images, combo, public
+# ---- cart ----
+import cart.add as cart_add
+import cart.view as cart_view
+import cart.decrement as cart_decrement
+import cart.remove as cart_remove
+cart_add.register_tools(mcp)
+cart_view.register_tools(mcp)
+cart_decrement.register_tools(mcp)
+cart_remove.register_tools(mcp)
 
-add.mcp = mcp
-view.mcp = mcp
-decrement.mcp = mcp
-remove.mcp = mcp
-images.mcp = mcp
-combo.mcp = mcp
-public.mcp = mcp
+# ---- products extras ----
+import products.images as images
+import products.combo as combo
+images.register_tools(mcp)
+combo.register_tools(mcp)
 
 
 if __name__ == "__main__":

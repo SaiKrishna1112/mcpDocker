@@ -1,19 +1,14 @@
 from pydantic import BaseModel
-from fastmcp import FastMCP
 from utils.http import post
 from auth.token_store import get_token_by_session
 
-# mcp: FastMCP
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp = None
 
 class RemoveCartResponse(BaseModel):
     success: bool
     message: str
 
 
-@mcp.tool()
 async def remove_cart_item(
     session_id: str,
     cart_id: str,
@@ -30,3 +25,9 @@ async def remove_cart_item(
         success=True,
         message="Cart item removed successfully",
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(remove_cart_item)

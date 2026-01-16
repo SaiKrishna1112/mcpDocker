@@ -1,12 +1,8 @@
 from pydantic import BaseModel, Field
-from fastmcp import FastMCP
 from utils.http import post
 from auth.token_store import create_session
 
-# mcp: FastMCP  # injected from server.py
-mcp = FastMCP(
-    name="oxyloans-api"
-)
+mcp: FastMCP  # injected from server.py
 
 # -------------------------------------------------
 # Schemas
@@ -22,7 +18,6 @@ class VerifyOTPAndAuthResponse(BaseModel):
 # Tool
 # -------------------------------------------------
 
-@mcp.tool()
 async def verify_otp_and_authenticate(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
     contact: str = Field(..., description="Mobile or WhatsApp number"),
@@ -91,3 +86,9 @@ async def verify_otp_and_authenticate(
         session_id=session_id,
         user_status=user_status,
     )
+
+
+def register_tools(mcp_instance):
+    global mcp
+    mcp = mcp_instance
+    mcp.tool()(verify_otp_and_authenticate)
