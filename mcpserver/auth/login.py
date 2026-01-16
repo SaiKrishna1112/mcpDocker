@@ -12,6 +12,7 @@ class SendOTPResponse(BaseModel):
 class VerifyOTPResponse(BaseModel):
     message: str
     session_id: str
+    access_token: str
 
 async def send_login_otp(
     country_code: str = Field(..., json_schema_extra={"example": "+91"}),
@@ -95,6 +96,7 @@ async def verify_login_otp(
     return VerifyOTPResponse(
         message="Login successful",
         session_id=session_id,
+        access_token=access_token,
     )
 
 def register_tools(mcp_instance):
