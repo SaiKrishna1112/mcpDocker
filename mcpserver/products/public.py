@@ -2,7 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from utils.http import get
 
-mcp: FastMCP  # injected from server.py
+mcp = None  # injected from server.py
 
 class Product(BaseModel):
     item_id: str

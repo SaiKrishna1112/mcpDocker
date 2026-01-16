@@ -226,29 +226,6 @@ async def get_product_suggestions(
         raise ValueError(f"Failed to fetch suggestions: {str(e)}")
 
 
-@mcp.tool()
-async def get_trending_products(limit: int = Field(50, ge=1, le=200)) -> str:
-    """Get trending products (no auth required). Returns product list with prices, discounts, and details."""
-    from utils.http import get
-    
-    data = await get("/product-service/showGroupItemsForCustomrs", params={})
-    
-    items = []
-    for category in data:
-        for cat in category.get("categories", []):
-            for item in cat.get("itemsResponseDtoList", []):
-                items.append({
-                    "id": item.get("itemId"),
-                    "name": item.get("itemName"),
-                    "price": item.get("itemPrice"),
-                    "mrp": item.get("itemMrp"),
-                    "save": f"{item.get('savePercentage', 0)}%",
-                    "category": cat.get("categoryName"),
-                })
-                if len(items) >= limit:
-                    break
-    return str(items[:limit])
-
 @mcp.resource("oxyloans://api-docs")
 async def get_api_docs() -> str:
     """OxyLoans API documentation and usage examples."""

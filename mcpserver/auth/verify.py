@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from utils.http import post
 from auth.token_store import create_session
 
-mcp: FastMCP  # injected from server.py
+mcp = None  # injected from server.py
 
 # -------------------------------------------------
 # Schemas
