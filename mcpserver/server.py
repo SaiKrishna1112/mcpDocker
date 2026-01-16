@@ -179,14 +179,13 @@ async def hello_world() -> str:
 @mcp.tool()
 async def get_product_suggestions(
     query: str = Field(..., min_length=1, description="Product search query"),
-    session_id: str = Field(..., description="User session ID from login"),
     budget: float = Field(1000.0, gt=0, description="Maximum budget in INR")
 ) -> List[ProductSuggestion]:
     """Get AI-powered product suggestions using OxyLoans API."""
     from auth.token_store import get_token_by_session
     from utils.http import get
     
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(query)
     if not token:
         raise ValueError("Invalid session. Please login first.")
     
@@ -312,12 +311,4 @@ combo.register_tools(mcp)
 
 
 if __name__ == "__main__":
-    transport = "sse"
-    if transport == "stdio":
-        print("Running server with stdio transport")
-        mcp.run(transport="stdio")
-    elif transport == "sse":
-        print("Running server with SSE transport")
-        mcp.run(transport="sse", host="0.0.0.0", port=8001)
-    else:
-        raise ValueError(f"Unknown transport: {transport}")
+    mcp.run(transport="sse", host="0.0.0.0", port=8001)

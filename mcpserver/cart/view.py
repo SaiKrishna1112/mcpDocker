@@ -35,10 +35,9 @@ class ViewCartResponse(BaseModel):
 
 
 async def view_user_cart(
-    session_id: str,
     customer_id: str,
 ) -> ViewCartResponse:
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(customer_id)
 
     data = await get(
         "/api/cart-service/cart/userCartInfo",

@@ -10,10 +10,9 @@ class RemoveCartResponse(BaseModel):
 
 
 async def remove_cart_item(
-    session_id: str,
     cart_id: str,
 ) -> RemoveCartResponse:
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(cart_id)
 
     data = await post(
         "/api/cart-service/cart/remove",

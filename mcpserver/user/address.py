@@ -76,13 +76,12 @@ async def geocode_address(address: str, pincode: str) -> tuple[str, str]:
 # -------------------------------------------------
 
 async def view_address_list(
-    session_id: str,
     customer_id: str,
 ) -> List[Address]:
     """
     View all saved addresses for a customer.
     """
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(customer_id)
     if not token:
         raise ValueError("Invalid session")
 
@@ -113,7 +112,6 @@ async def view_address_list(
 
 
 async def add_address(
-    session_id: str,
     customer_id: str,
     flat_no: str,
     address: str,
@@ -124,7 +122,7 @@ async def add_address(
     """
     Add a new address after resolving coordinates (India only).
     """
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(customer_id)
     if not token:
         raise ValueError("Invalid session")
 

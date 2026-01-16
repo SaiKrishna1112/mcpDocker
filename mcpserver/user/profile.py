@@ -41,13 +41,12 @@ class UpdateProfileResponse(BaseModel):
 # -------------------------------------------------
 
 async def get_customer_profile(
-    session_id: str = Field(...),
     customer_id: str = Field(...),
 ) -> CustomerProfile:
     """
     Fetch customer profile details.
     """
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(customer_id)
     if not token:
         raise ValueError("Invalid session")
 
@@ -78,7 +77,6 @@ async def get_customer_profile(
 
 
 async def update_customer_profile(
-    session_id: str,
     customer_id: str,
     first_name: str,
     last_name: str,
@@ -90,7 +88,7 @@ async def update_customer_profile(
     """
     Update customer profile details.
     """
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(customer_id)
     if not token:
         raise ValueError("Invalid session")
 

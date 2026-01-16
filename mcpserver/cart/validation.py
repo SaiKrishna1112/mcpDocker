@@ -7,7 +7,7 @@ async def validate_profile_before_cart(session_id: str, customer_id: str):
         raise ValueError("Invalid session")
 
     profile = await get(
-        "/api/user-service/customerProfileDetails",
+        "/user-service/customerProfileDetails",
         params={"customerId": customer_id},
         bearer_token=token,
     )

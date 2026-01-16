@@ -2,13 +2,20 @@
   "name": "q_ide_default",
   "description": "Default agent configuration",
   "prompt": "",
-  "mcpServers": {},
+  "mcpServers": {
+    "Testing": {
+      "url": "https://testingmcp-kulj.onrender.com/sse",
+      "disabled": false,
+      "timeout": 60000
+    }
+  },
   "tools": [
     "fs_read",
     "execute_bash",
     "fs_write",
     "report_issue",
-    "use_aws"
+    "use_aws",
+    "@Testing"
   ],
   "toolAliases": {},
   "allowedTools": [
@@ -16,7 +23,18 @@
     "report_issue",
     "use_aws",
     "execute_bash",
-    "fs_write"
+    "fs_write",
+    "@Testing/hello_world",
+    "@Testing/get_product_suggestions",
+    "@Testing/send_login_otp",
+    "@Testing/verify_login_otp",
+    "@Testing/send_register_otp",
+    "@Testing/verify_otp_and_authenticate",
+    "@Testing/simple_login",
+    "@Testing/dynamic_product_search",
+    "@Testing/get_trending_products",
+    "@Testing/get_customer_profile",
+    "@Testing/update_customer_profile"
   ],
   "toolsSettings": {
     "use_aws": {

@@ -25,10 +25,9 @@ class ComboResponse(BaseModel):
 
 
 async def get_combo_item_details(
-    session_id: str,
     item_id: str,
 ) -> ComboResponse:
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(item_id)
 
     data = await get(
         f"/api/product-service/getComboInfo/{item_id}",

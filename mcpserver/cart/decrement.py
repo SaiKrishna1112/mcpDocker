@@ -10,11 +10,10 @@ class DecrementCartResponse(BaseModel):
 
 
 async def decrement_cart_item(
-    session_id: str,
     customer_id: str,
     item_id: str,
 ) -> DecrementCartResponse:
-    token = get_token_by_session(session_id)
+    token = get_token_by_session(customer_id)
 
     payload = {
         "customerId": customer_id,

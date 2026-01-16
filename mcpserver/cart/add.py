@@ -34,7 +34,7 @@ async def add_to_cart(
         payload["status"] = "COMBO"
 
     data = await post(
-        "/api/cart-service/cart/addAndIncrementCart",
+        "/cart-service/cart/addAndIncrementCart",
         payload,
         bearer_token=token,
     )

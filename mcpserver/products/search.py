@@ -37,10 +37,6 @@ class DynamicSearchResponse(BaseModel):
 
 async def dynamic_product_search(
     q: str = Field(..., min_length=1, description="Search keyword"),
-    session_id: str = Field(
-        ...,
-        description="User session ID (required for token-based access)",
-    ),
 ) -> DynamicSearchResponse:
     """
     Search products dynamically by keyword using authenticated access.
@@ -49,7 +45,7 @@ async def dynamic_product_search(
     # ---------------------------------------------
     # Resolve access token from session
     # ---------------------------------------------
-    access_token = get_token_by_session(session_id)
+    access_token = get_token_by_session(q)
     if not access_token:
         raise ValueError("Invalid or expired session. Please login again.")
 
