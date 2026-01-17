@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from utils.http import post
-from auth.token_store import get_token_by_session
+from utils.http import patch
+from auth.token_store import get_token_by_session, get_user_id_by_session
 
 mcp = None
 
@@ -10,18 +10,22 @@ class DecrementCartResponse(BaseModel):
 
 
 async def decrement_cart_item(
-    customer_id: str,
+    session_id: str,
     item_id: str,
 ) -> DecrementCartResponse:
-    token = get_token_by_session(customer_id)
+    user_id = get_user_id_by_session(session_id)
+    if not user_id:
+        raise ValueError("Invalid session")
+    
+    token = get_token_by_session(session_id)
 
     payload = {
-        "customerId": customer_id,
+        "customerId": user_id,
         "itemId": item_id,
     }
 
-    data = await post(
-        "/api/cart-service/cart/minusCartItem",
+    data = await patch(
+        "/cart-service/cart/minusCartItem",
         payload,
         bearer_token=token,
     )

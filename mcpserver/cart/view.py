@@ -1,7 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 from utils.http import get
-from auth.token_store import get_token_by_session
+from auth.token_store import get_token_by_session, get_user_id_by_session
 
 mcp = None
 
@@ -35,13 +35,17 @@ class ViewCartResponse(BaseModel):
 
 
 async def view_user_cart(
-    customer_id: str,
+    session_id: str,
 ) -> ViewCartResponse:
-    token = get_token_by_session(customer_id)
+    user_id = get_user_id_by_session(session_id)
+    if not user_id:
+        raise ValueError("Invalid session")
+    
+    token = get_token_by_session(session_id)
 
     data = await get(
-        "/api/cart-service/cart/userCartInfo",
-        params={"customerId": customer_id},
+        "/cart-service/cart/userCartInfo",
+        params={"customerId": user_id},
         bearer_token=token,
     )
 

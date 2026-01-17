@@ -41,17 +41,23 @@ class UpdateProfileResponse(BaseModel):
 # -------------------------------------------------
 
 async def get_customer_profile(
-    customer_id: str = Field(...),
+    session_id: str = Field(...),
 ) -> CustomerProfile:
     """
     Fetch customer profile details.
     """
-    token = get_token_by_session(customer_id)
-    if not token:
+    from auth.token_store import get_user_id_by_session
+    
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
         raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
 
     data = await get(
-        "/api/user-service/customerProfileDetails",
+        "/user-service/customerProfileDetails",
         params={"customerId": customer_id},
         bearer_token=token,
     )
@@ -77,7 +83,7 @@ async def get_customer_profile(
 
 
 async def update_customer_profile(
-    customer_id: str,
+    session_id: str,
     first_name: str,
     last_name: str,
     email: str,
@@ -88,9 +94,15 @@ async def update_customer_profile(
     """
     Update customer profile details.
     """
-    token = get_token_by_session(customer_id)
-    if not token:
+    from auth.token_store import get_user_id_by_session
+    
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
         raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
 
     payload = {
         "customerId": customer_id,
@@ -103,7 +115,7 @@ async def update_customer_profile(
     }
 
     data = await post(
-        "/api/user-service/profileUpdate",
+        "/user-service/profileUpdate",
         payload,
         bearer_token=token,
     )

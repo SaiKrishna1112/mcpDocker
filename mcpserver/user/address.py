@@ -76,17 +76,23 @@ async def geocode_address(address: str, pincode: str) -> tuple[str, str]:
 # -------------------------------------------------
 
 async def view_address_list(
-    customer_id: str,
+    session_id: str,
 ) -> List[Address]:
     """
     View all saved addresses for a customer.
     """
-    token = get_token_by_session(customer_id)
-    if not token:
+    from auth.token_store import get_user_id_by_session
+    
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
         raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
 
     data = await get(
-        "/api/user-service/getAllAdd",
+        "/user-service/getAllAdd",
         params={"customerId": customer_id},
         bearer_token=token,
     )
@@ -112,7 +118,7 @@ async def view_address_list(
 
 
 async def add_address(
-    customer_id: str,
+    session_id: str,
     flat_no: str,
     address: str,
     landmark: str,
@@ -122,9 +128,15 @@ async def add_address(
     """
     Add a new address after resolving coordinates (India only).
     """
-    token = get_token_by_session(customer_id)
-    if not token:
+    from auth.token_store import get_user_id_by_session
+    
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
         raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
 
     latitude, longitude = await geocode_address(address, pincode)
 
@@ -140,7 +152,7 @@ async def add_address(
     }
 
     data = await post(
-        "/api/user-service/addAddress",
+        "/user-service/addAddress",
         payload,
         bearer_token=token,
     )

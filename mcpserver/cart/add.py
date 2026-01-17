@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from utils.http import post
-from auth.token_store import get_token_by_session
+from auth.token_store import get_token_by_session, get_user_id_by_session
 from cart.validation import validate_profile_before_cart
 
 mcp = None
@@ -12,7 +12,6 @@ class AddCartResponse(BaseModel):
 
 async def add_to_cart(
     session_id: str,
-    customer_id: str,
     item_id: str,
     cart_quantity: int = Field(..., ge=1),
     status: str | None = Field(None, description="Use COMBO for combo items"),
@@ -20,12 +19,16 @@ async def add_to_cart(
     """
     Add / increment item or add combo item.
     """
-    await validate_profile_before_cart(session_id, customer_id)
+    user_id = get_user_id_by_session(session_id)
+    if not user_id:
+        raise ValueError("Invalid session")
+
+    await validate_profile_before_cart(session_id, user_id)
 
     token = get_token_by_session(session_id)
 
     payload = {
-        "customerId": customer_id,
+        "customerId": user_id,
         "itemId": item_id,
         "cartQuantity": cart_quantity,
     }

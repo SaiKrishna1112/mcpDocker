@@ -4,7 +4,7 @@
   "prompt": "",
   "mcpServers": {
     "Testing": {
-      "url": "https://testingmcp-kulj.onrender.com/sse",
+      "url": "http://localhost:8001/sse",
       "disabled": false,
       "timeout": 60000
     }
@@ -34,7 +34,15 @@
     "@Testing/dynamic_product_search",
     "@Testing/get_trending_products",
     "@Testing/get_customer_profile",
-    "@Testing/update_customer_profile"
+    "@Testing/update_customer_profile",
+    "@Testing/view_user_cart",
+    "@Testing/add_to_cart",
+    "@Testing/decrement_cart_item",
+    "@Testing/remove_cart_item",
+    "@Testing/view_address_list",
+    "@Testing/add_address",
+    "@Testing/get_product_images",
+    "@Testing/get_combo_item_details"
   ],
   "toolsSettings": {
     "use_aws": {

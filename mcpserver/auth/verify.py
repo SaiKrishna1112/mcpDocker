@@ -70,14 +70,13 @@ async def verify_otp_and_authenticate(
 
     access_token = data["accessToken"]
     user_status = data.get("userStatus", "UNKNOWN")
+    user_id = data.get("userId") or data.get("id") or contact
 
     # -------------------------------------------------
     # Create MCP session
     # -------------------------------------------------
-    # Backend does not return userId explicitly.
-    # Identity is embedded in the token.
     session_id = create_session(
-        user_id="CUSTOMER",
+        user_id=user_id,
         access_token=access_token,
     )
 

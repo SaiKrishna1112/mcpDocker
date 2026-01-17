@@ -39,6 +39,13 @@ def create_session(user_id: str, access_token: str) -> str:
     return session_id
 
 
+def get_user_id_by_session(session_id: str) -> str | None:
+    session = SESSION_STORE.get(session_id)
+    if not session:
+        return None
+    return session.get("user_id")
+
+
 def get_token_by_session(session_id: str) -> str | None:
     session = SESSION_STORE.get(session_id)
     if not session:

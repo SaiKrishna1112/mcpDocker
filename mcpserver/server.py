@@ -234,41 +234,63 @@ async def get_api_docs() -> str:
 ## Public APIs (No Auth Required):
 - `get_trending_products`: Browse all trending products with prices, discounts, and details
 - `hello_world`: Test server connectivity
+
+## Authentication APIs:
+### Simple Auth
 - `simple_login`: Quick login/register with mobile number (no OTP)
 
-## Authentication Required:
-
-### Auth Flow (Simple)
-- `simple_login`: Login/register instantly with mobile number
-
-### Auth Flow (OTP-based)
-- `send_login_otp`: Send OTP via SMS/WhatsApp
+### OTP-based Auth
+- `send_login_otp`: Send OTP via SMS/WhatsApp for login
 - `verify_login_otp`: Verify OTP and get session_id
 - `send_register_otp`: Send OTP for new registration
 - `verify_otp_and_authenticate`: Verify OTP for login/register
 
-### Products (Auth)
+## Product APIs (Auth Required):
 - `dynamic_product_search`: Search products by query
 - `get_product_suggestions`: AI-powered product recommendations
 - `get_product_images`: Get product images
 - `get_combo_item_details`: Get combo details
 
-### User Management
+## User Management:
 - `get_customer_profile`: Get user profile
 - `update_customer_profile`: Update profile
 - `view_address_list`: View saved addresses
 - `add_address`: Add new address
 
-### Cart Operations
+## Cart Operations:
 - `add_to_cart`: Add items to cart
 - `view_user_cart`: View cart contents
 - `decrement_cart_item`: Decrease quantity
 - `remove_cart_item`: Remove item
 
+## Order Management:
+- `check_order_conditions`: Validate order requirements
+- `check_delivery_availability`: Check delivery for pincode
+- `place_order`: Place order with validation
+- `get_order_history`: View past orders
+- `track_order`: Track order status
+- `cancel_order`: Cancel eligible orders
+
+## Complete Checkout Flow:
+- `fetch_cart_summary`: STEP 1 - Get cart summary
+- `get_user_addresses`: STEP 2.1 - Get addresses
+- `validate_pincode_serviceability`: STEP 2.2 - Validate pincode
+- `calculate_delivery_charges`: STEP 3 - Calculate delivery
+- `get_available_coupons`: STEP 4 - Get coupons
+- `apply_wallet_amount`: STEP 5 - Apply wallet
+- `fetch_delivery_slots`: STEP 6 - Get delivery slots
+- `initiate_payment`: STEP 7 - Initiate payment
+- `confirm_payment`: STEP 8 - Confirm payment
+- `validate_checkout`: Complete checkout validation
+
+## Total APIs: 30 (All Implemented & Registered)
+
 ## Quick Start:
-1. Browse products: `get_trending_products()`
-2. Login: `send_login_otp()` → `verify_login_otp()`
-3. Shop: `dynamic_product_search()` → `add_to_cart()`
+1. Test: `hello_world()`
+2. Login: `simple_login(mobile_number="8125861874")`
+3. Browse: `get_trending_products()` or `dynamic_product_search("rice")`
+4. Shop: `add_to_cart()` → `view_user_cart()`
+5. Checkout: `validate_checkout()` → `initiate_payment()` → `confirm_payment()`
 """
 
 # ---- auth modules ----
@@ -284,8 +306,12 @@ simple_login.register_tools(mcp)
 # ---- products ----
 import products.search as search
 import products.public as public
+import products.images as images
+import products.combo as combo
 search.register_tools(mcp)
 public.register_tools(mcp)
+images.register_tools(mcp)
+combo.register_tools(mcp)
 
 # ---- user ----
 import user.profile as profile
@@ -303,11 +329,13 @@ cart_view.register_tools(mcp)
 cart_decrement.register_tools(mcp)
 cart_remove.register_tools(mcp)
 
-# ---- products extras ----
-import products.images as images
-import products.combo as combo
-images.register_tools(mcp)
-combo.register_tools(mcp)
+# ---- orders ----
+import orders.validation as order_validation
+import orders.management as order_management
+import orders.checkout as order_checkout
+order_validation.register_tools(mcp)
+order_management.register_tools(mcp)
+order_checkout.register_tools(mcp)
 
 
 if __name__ == "__main__":
