@@ -186,9 +186,106 @@ async def cancel_order(
     except Exception as e:
         raise ValueError(f"Failed to cancel order: {str(e)}")
 
+async def get_order_summary(
+    session_id: str = Field(...),
+) -> dict:
+    """
+    Fetch cart items for order summary (Checkout Step 2).
+    """
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
+        raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
+
+    data = await get(
+        "/api/cart-service/cart/customersCartItems",
+        params={"customerId": customer_id},
+        bearer_token=token,
+    )
+
+    return data
+
+async def reorder_item(
+    session_id: str = Field(...),
+    item_id: str = Field(...),
+) -> dict:
+    """
+    Add item to cart for reorder functionality.
+    """
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
+        raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
+
+    payload = {
+        "customerId": customer_id,
+        "itemId": item_id,
+    }
+
+    data = await post(
+        "/api/cart-service/cart/addAndIncrementCart",
+        payload,
+        bearer_token=token,
+    )
+
+    return data
+
+async def get_cancelled_orders(
+    session_id: str = Field(...),
+) -> List[dict]:
+    """
+    Fetch all cancelled orders for the user.
+    """
+    user_id = get_user_id_by_session(session_id)
+    if not user_id:
+        raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
+
+    data = await get(
+        "/api/erice-service/order/userCancelOrdersList",
+        params={"userId": user_id},
+        bearer_token=token,
+    )
+
+    return data
+
+async def get_exchange_orders(
+    session_id: str = Field(...),
+) -> List[dict]:
+    """
+    Fetch all exchange orders for the user.
+    """
+    customer_id = get_user_id_by_session(session_id)
+    if not customer_id:
+        raise ValueError("Invalid session")
+        
+    token = get_token_by_session(session_id)
+    if not token:
+        raise ValueError("No authentication token found")
+
+    data = await get(
+        f"/api/order-service/getExchangeOrders/{customer_id}",
+        bearer_token=token,
+    )
+
+    return data
+
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
     mcp.tool()(get_order_history)
     mcp.tool()(track_order)
     mcp.tool()(cancel_order)
+    mcp.tool()(get_order_summary)
+    mcp.tool()(reorder_item)
+    mcp.tool()(get_cancelled_orders)
+    mcp.tool()(get_exchange_orders)
