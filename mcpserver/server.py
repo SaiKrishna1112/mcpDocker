@@ -158,8 +158,15 @@
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from typing import List, Optional
+import os
 
 mcp = FastMCP(name="oxyloans-api")
+
+# Add route for OpenAI apps challenge
+@mcp.tool()
+async def get_openai_challenge() -> str:
+    """Serve OpenAI apps challenge token for verification"""
+    return "lCG1ME4nDMF4SQ5WN34e_mRcJ2671QubLKki1faFH8o"
 
 class ProductSuggestion(BaseModel):
     product_name: str
@@ -339,4 +346,6 @@ order_checkout.register_tools(mcp)
 
 
 if __name__ == "__main__":
+    print(f"✅ MCP Server configured")
+    print(f"✅ Challenge token available via get_openai_challenge tool")
     mcp.run(transport="sse", host="0.0.0.0", port=8001)

@@ -24,6 +24,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV SERVER_MODE=both
 
 WORKDIR /app
 
@@ -35,6 +36,7 @@ RUN uv pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8001
+EXPOSE 8001 8002
 
-CMD ["uv", "run", "python", "server.py"]
+# Run both servers
+CMD ["uv", "run", "python", "start.py"]

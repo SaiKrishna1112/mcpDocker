@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: oxyloans-single
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python single_server.py"
+    envVars:
+      - key: PORT
+        fromService:
+          type: web
+          name: oxyloans-single
+          property: port
