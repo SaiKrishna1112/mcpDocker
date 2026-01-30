@@ -1,160 +1,3 @@
-# import os
-# from typing import List, Optional, Dict
-# import httpx
-# from pydantic import BaseModel, Field
-# from mcp.server.fastmcp import FastMCP
-#
-# # =====================================================
-# # SERVER CONFIG (RENDER SAFE)
-# # =====================================================
-#
-# PORT = int(os.environ.get("PORT", 8001))
-#
-# mcp = FastMCP(
-#     name="oxyloans-api",
-#     host="0.0.0.0",
-#     port=PORT,
-# )
-#
-# BASE_URL = "https://meta.oxyloans.com/api"
-#
-# # =====================================================
-# # TOKEN STORE (REPLACE WITH DB / REDIS LATER)
-# # =====================================================
-#
-# USER_TOKENS: Dict[str, str] = {
-#     # "test-user": "REAL_OR_DUMMY_BEARER_TOKEN"
-# }
-#
-# def get_bearer_token(user_id: str) -> str:
-#     token = USER_TOKENS.get(user_id)
-#     if not token:
-#         raise ValueError("Bearer token not found for user")
-#     return token
-#
-# # =====================================================
-# # HTTP HELPERS
-# # =====================================================
-#
-# async def api_get(url: str, user_id: Optional[str] = None):
-#     headers = {}
-#     if user_id:
-#         headers["Authorization"] = f"Bearer {get_bearer_token(user_id)}"
-#
-#     async with httpx.AsyncClient(timeout=30.0) as client:
-#         response = await client.get(url, headers=headers)
-#         response.raise_for_status()
-#         return response.json()
-#
-# async def api_post(url: str, payload: dict, user_id: Optional[str] = None):
-#     headers = {"Content-Type": "application/json"}
-#     if user_id:
-#         headers["Authorization"] = f"Bearer {get_bearer_token(user_id)}"
-#
-#     async with httpx.AsyncClient(timeout=30.0) as client:
-#         response = await client.post(url, json=payload, headers=headers)
-#         response.raise_for_status()
-#         return response.json()
-#
-# # =====================================================
-# # SCHEMAS
-# # =====================================================
-#
-# class Product(BaseModel):
-#     item_id: str
-#     name: str
-#     price: float
-#     mrp: float
-#     image: Optional[str]
-#     description: Optional[str]
-#     category: Optional[str]
-#
-# class TrendingProductsResponse(BaseModel):
-#     products: List[Product]
-#     count: int
-#
-# class ActiveOffersResponse(BaseModel):
-#     offers: list
-#
-# class CartActionResponse(BaseModel):
-#     status: str
-#     message: str
-#
-# # =====================================================
-# # TOOLS (NO read_only FLAG)
-# # =====================================================
-#
-# @mcp.tool()
-# async def get_trending_products(
-#     limit: int = Field(20, ge=1, le=100)
-# ) -> TrendingProductsResponse:
-#     """
-#     Get trending products (public).
-#     """
-#     url = f"{BASE_URL}/product-service/showGroupItemsForCustomrs"
-#     data = await api_get(url)
-#
-#     products: List[Product] = []
-#
-#     for group in data:
-#         for category in group.get("categories", []):
-#             for item in category.get("itemsResponseDtoList", []):
-#                 products.append(
-#                     Product(
-#                         item_id=item.get("itemId"),
-#                         name=item.get("itemName"),
-#                         price=item.get("itemPrice", 0),
-#                         mrp=item.get("itemMrp", 0),
-#                         image=item.get("itemImage"),
-#                         description=item.get("itemDescription"),
-#                         category=category.get("categoryName"),
-#                     )
-#                 )
-#
-#     products = products[:limit]
-#     return TrendingProductsResponse(products=products, count=len(products))
-#
-# @mcp.tool()
-# async def get_active_offers() -> ActiveOffersResponse:
-#     """
-#     Get active combo offers (public).
-#     """
-#     url = f"{BASE_URL}/product-service/getComboActiveInfo"
-#     data = await api_get(url)
-#     return ActiveOffersResponse(offers=data)
-#
-# @mcp.tool()
-# async def add_to_cart(
-#     user_id: str = Field(..., description="User ID"),
-#     item_id: str = Field(...),
-#     quantity: int = Field(..., ge=1, le=10),
-# ) -> CartActionResponse:
-#     """
-#     Add item to user's cart (auth required).
-#     """
-#     url = f"{BASE_URL}/cart-service/cart/addAndIncrementCart"
-#     payload = {
-#         "customerId": user_id,
-#         "itemId": item_id,
-#         "quantity": quantity
-#     }
-#
-#     await api_post(url, payload, user_id=user_id)
-#
-#     return CartActionResponse(
-#         status="success",
-#         message="Item added to cart"
-#     )
-#
-# # =====================================================
-# # START SERVER
-# # =====================================================
-#
-# if __name__ == "__main__":
-#     print(f"✅ MCP Server running on port {PORT}")
-#     mcp.run(transport="sse")
-
-
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -231,74 +74,174 @@ async def get_product_suggestions(
     except Exception as e:
         raise ValueError(f"Failed to fetch suggestions: {str(e)}")
 
-
-@mcp.resource("oxyloans://api-docs")
+@mcp.resource("askoxy://api-docs")
 async def get_api_docs() -> str:
-    """OxyLoans API documentation and usage examples."""
+    """askoxy.ai MCP Server API documentation and usage examples."""
     return """
-# OxyLoans MCP Server API Documentation
+# Askoxy.ai MCP Server – API Documentation
 
-## Public APIs (No Auth Required):
-- `get_trending_products`: Browse all trending products with prices, discounts, and details
-- `hello_world`: Test server connectivity
+## Public APIs (No Authentication Required)
+These APIs are accessible without login.
 
-## Authentication APIs:
-### Simple Auth
-- `simple_login`: Quick login/register with mobile number (no OTP)
+- `get_trending_products`  
+  Browse trending products with prices, discounts, weight, and availability.
 
-### OTP-based Auth
-- `send_login_otp`: Send OTP via SMS/WhatsApp for login
-- `verify_login_otp`: Verify OTP and get session_id
-- `send_register_otp`: Send OTP for new registration
-- `verify_otp_and_authenticate`: Verify OTP for login/register
+- `hello_world`  
+  Health check to verify MCP server connectivity.
 
-## Product APIs (Auth Required):
-- `dynamic_product_search`: Search products by query
-- `get_product_suggestions`: AI-powered product recommendations
-- `get_product_images`: Get product images
-- `get_combo_item_details`: Get combo details
+---
 
-## User Management:
-- `get_customer_profile`: Get user profile
-- `update_customer_profile`: Update profile
-- `view_address_list`: View saved addresses
-- `add_address`: Add new address
+## Authentication APIs (OTP-Based Only)
 
-## Cart Operations:
-- `add_to_cart`: Add items to cart
-- `view_user_cart`: View cart contents
-- `decrement_cart_item`: Decrease quantity
-- `remove_cart_item`: Remove item
+> NOTE: Simple login without OTP is **not supported**.
 
-## Order Management:
-- `check_order_conditions`: Validate order requirements
-- `check_delivery_availability`: Check delivery for pincode
-- `place_order`: Place order with validation
-- `get_order_history`: View past orders
-- `track_order`: Track order status
-- `cancel_order`: Cancel eligible orders
+### Login Flow
+- `send_login_otp`  
+  Sends OTP via SMS/WhatsApp for existing users.
 
-## Complete Checkout Flow:
-- `fetch_cart_summary`: STEP 1 - Get cart summary
-- `get_user_addresses`: STEP 2.1 - Get addresses
-- `validate_pincode_serviceability`: STEP 2.2 - Validate pincode
-- `calculate_delivery_charges`: STEP 3 - Calculate delivery
-- `get_available_coupons`: STEP 4 - Get coupons
-- `apply_wallet_amount`: STEP 5 - Apply wallet
-- `fetch_delivery_slots`: STEP 6 - Get delivery slots
-- `initiate_payment`: STEP 7 - Initiate payment
-- `confirm_payment`: STEP 8 - Confirm payment
-- `validate_checkout`: Complete checkout validation
+- `verify_login_otp`  
+  Verifies OTP and returns session credentials.
 
-## Total APIs: 30 (All Implemented & Registered)
+### Registration Flow
+- `send_register_otp`  
+  Sends OTP for new user registration.
 
-## Quick Start:
-1. Test: `hello_world()`
-2. Login: `simple_login(mobile_number="8125861874")`
-3. Browse: `get_trending_products()` or `dynamic_product_search("rice")`
-4. Shop: `add_to_cart()` → `view_user_cart()`
-5. Checkout: `validate_checkout()` → `initiate_payment()` → `confirm_payment()`
+- `verify_otp_and_authenticate`  
+  Verifies OTP and completes login or registration.
+
+---
+
+## Product APIs (Authentication Required)
+
+- `dynamic_product_search`  
+  Search products using keywords (e.g., rice, cashews).
+
+- `get_product_suggestions`  
+  AI-powered personalized product recommendations.
+
+- `get_product_images`  
+  Retrieve images for a given itemId.
+
+- `get_combo_item_details`  
+  Fetch combo offer details for a product.
+
+---
+
+## User Management APIs
+
+- `get_customer_profile`  
+  Fetch logged-in user profile details.
+
+- `update_customer_profile`  
+  Create or update user profile information.
+
+- `view_address_list`  
+  View all saved delivery addresses.
+
+- `add_address`  
+  Add a new delivery address with latitude & longitude.
+
+---
+
+## Cart Operations
+
+- `add_to_cart`  
+  Add or increment an item in the cart.
+
+- `view_user_cart`  
+  Retrieve cart items, totals, discounts, and free items.
+
+- `decrement_cart_item`  
+  Reduce item quantity by one.
+
+- `remove_cart_item`  
+  Remove an item completely from the cart.
+
+---
+
+## Order Management APIs
+
+- `check_order_conditions`  
+  Validate cart and order constraints.
+
+- `check_delivery_availability`  
+  Check serviceability for a given pincode.
+
+- `place_order`  
+  Place an order after successful payment.
+
+- `get_order_history`  
+  Fetch previous orders.
+
+- `track_order`  
+  Track current order status.
+
+- `cancel_order`  
+  Cancel eligible orders based on policy.
+
+---
+
+## Complete Checkout Flow (Sequential)
+
+1. `fetch_cart_summary`  
+   STEP 1 – Retrieve cart totals and discounts.
+
+2. `get_user_addresses`  
+   STEP 2.1 – Fetch delivery addresses.
+
+3. `validate_pincode_serviceability`  
+   STEP 2.2 – Confirm delivery availability.
+
+4. `calculate_delivery_charges`  
+   STEP 3 – Compute delivery & handling fees.
+
+5. `get_available_coupons`  
+   STEP 4 – Retrieve eligible coupons.
+
+6. `apply_wallet_amount`  
+   STEP 5 – Apply wallet or coin balance.
+
+7. `fetch_delivery_slots`  
+   STEP 6 – Get available delivery slots.
+
+8. `initiate_payment`  
+   STEP 7 – Initiate payment transaction.
+
+9. `confirm_payment`  
+   STEP 8 – Confirm payment success or failure.
+
+10. `validate_checkout`  
+    Final validation before order placement.
+
+---
+
+## API Summary
+- Total APIs: 29
+- Authentication: OTP-based only
+- Status: All APIs implemented and registered
+
+---
+
+## Quick Start
+
+1. Health Check  
+   `hello_world()`
+
+2. Login / Register  
+   `send_login_otp()` → `verify_login_otp()`
+
+3. Browse Products  
+   `get_trending_products()`  
+   or  
+   `dynamic_product_search("rice")`
+
+4. Add to Cart  
+   `add_to_cart()` → `view_user_cart()`
+
+5. Checkout & Payment  
+   `validate_checkout()` → `initiate_payment()` → `confirm_payment()`
 """
+
 
 # ---- auth modules ----
 import auth.login as login

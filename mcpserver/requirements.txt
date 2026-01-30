@@ -6,4 +6,3 @@ instructor
 mcp-inspector
 fastapi
 uvicorn
-fastapi

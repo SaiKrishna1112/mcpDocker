@@ -1,59 +1,42 @@
 import asyncio
-from mcp.client.sse import sse_client
-from mcp import ClientSession
-
-
-MCP_SSE_URL = "http://localhost:8001/sse"
-# For Render, replace with:
-# MCP_SSE_URL = "https://<your-render-service>.onrender.com/sse"
-
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from mcp_use import MCPAgent, MCPClient
 
 async def main():
-    print("Connecting to MCP server via SSE...")
+    """Run the example using a configuration file."""
+    # Load environment variables
+    load_dotenv()
 
-    async with sse_client(MCP_SSE_URL) as (read, write):
-        async with ClientSession(read, write) as session:
-            # Initialize MCP session
-            await session.initialize()
-            print("MCP session initialized\n")
+    config = {
+        "mcpServers": {
+            "http": {
+                "url": "https://testingmcp-kulj.onrender.com/sse",
+                "auth": {"type": "none"}
+            }
+        }
+    }
 
-            # -----------------------------
-            # List available tools
-            # -----------------------------
-            tools_response = await session.list_tools()
+    # Create MCPClient from config file
+    client = MCPClient.from_dict(config)
 
-            print("Available tools:")
-            for tool in tools_response.tools:
-                print(f"- {tool.name}")
-            print()
+    # Create LLM
+    llm = ChatOpenAI(
+        model="gpt-4.1-mini",
+        temperature=0
+    )
 
-            # -----------------------------
-            # Example: Call get_active_offers
-            # -----------------------------
-            print("Calling get_active_offers...")
-            offers = await session.call_tool(
-                "get_active_offers",
-                {}
-            )
-            print("Active Offers Response:")
-            print(offers.content)
-            print()
+    # Create agent with the client
+    agent = MCPAgent(llm=llm, client=client, max_steps=30)
 
-            # -----------------------------
-            # Example: Call get_trending_products
-            # -----------------------------
-            print("Calling get_trending_products...")
-            products = await session.call_tool(
-                "get_trending_products",
-                {}
-            )
-
-            print("Trending Products (preview):")
-            if products.content:
-                print(products.content[:1])
-            else:
-                print("No products returned")
-
+    # Run the query
+    result = await agent.run(
+        "Find the best restaurant in San Francisco USING GOOGLE SEARCH",
+        max_steps=30,
+    )
+    print(f"\nResult: {result}")
 
 if __name__ == "__main__":
+    # Run the appropriate example
     asyncio.run(main())
