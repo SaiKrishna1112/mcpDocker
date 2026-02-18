@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: oxyloans-unified
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python unified_server.py"
+    envVars:
+      - key: PORT
+        fromService:
+          type: web
+          name: oxyloans-unified
+          property: port
+      - key: SERVER_URL
+        value: https://oxyloans-unified.onrender.com
+
+  - type: cron
+    name: keep-alive-scheduler
+    env: python
+    schedule: "*/10 * * * *"
+    buildCommand: "pip install httpx"
+    startCommand: "python -c \"import httpx; import os; httpx.get(os.environ.get('SERVER_URL', 'https://oxyloans-unified.onrender.com') + '/health')\""
+    envVars:
+      - key: SERVER_URL
+        value: https://oxyloans-unified.onrender.com

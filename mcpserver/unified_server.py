@@ -38,6 +38,10 @@ def run_mcp_server():
 def main():
     port = int(os.environ.get("PORT", 8000))
     
+    # Start scheduler in background
+    from scheduler import start_scheduler_thread
+    start_scheduler_thread(interval_minutes=10)
+    
     # Start MCP server in background
     mcp_thread = threading.Thread(target=run_mcp_server, daemon=True)
     mcp_thread.start()

@@ -14,6 +14,11 @@ def main():
         print("🌐 Starting in WEB mode (for OpenAI verification)")
         from web_server import app
         import uvicorn
+        
+        # Start scheduler in background
+        from scheduler import start_scheduler_thread
+        start_scheduler_thread(interval_minutes=10)
+        
         port = int(os.environ.get("PORT", 8001))
         uvicorn.run(app, host="0.0.0.0", port=port)
         
@@ -30,6 +35,10 @@ def main():
         from mcp.server.sse import SseServerTransport
         import uvicorn
         import asyncio
+
+        # Start scheduler in background
+        from scheduler import start_scheduler_thread
+        start_scheduler_thread(interval_minutes=10)
 
         # Create a unified app
         unified_app = FastAPI()

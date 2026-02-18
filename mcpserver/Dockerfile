@@ -16,5 +16,5 @@ COPY . .
 
 EXPOSE 8001 8002
 
-# Run the scheduler which runs start.py and restarts it every 13 mins
-CMD ["uv", "run", "python", "scheduler.py"]
+# Run the server (scheduler runs automatically in background)
+CMD ["uv", "run", "python", "start.py"]
