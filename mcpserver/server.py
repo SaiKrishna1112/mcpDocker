@@ -248,10 +248,12 @@ import auth.login as login
 import auth.register as register
 import auth.verify as verify
 import auth.simple_login as simple_login
+import auth.token_login as token_login
 login.register_tools(mcp)
 register.register_tools(mcp)
 verify.register_tools(mcp)
 simple_login.register_tools(mcp)
+token_login.register_tools(mcp)
 
 # ---- products ----
 import products.search as search
