@@ -6,10 +6,11 @@ import os
 mcp = FastMCP(name="askoxy-api")
 
 # Add route for health check
-@mcp.get("/health")
-async def health():
+@mcp.custom_route("/health", methods=["GET"])
+async def health(request):
     """Health check endpoint"""
-    return {"status": "healthy"}
+    from starlette.responses import JSONResponse
+    return JSONResponse({"status": "healthy"})
 
 # Add route for OpenAI apps challenge
 @mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": False, "destructiveHint": False})

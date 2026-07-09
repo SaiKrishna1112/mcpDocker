@@ -11,17 +11,19 @@ import os
 mcp = FastMCP(name="askoxy-unified")
 
 # Add web endpoints directly to FastMCP
-@mcp.get("/.well-known/openai-apps-challenge")
-async def openai_challenge():
+@mcp.custom_route("/.well-known/openai-apps-challenge", methods=["GET"])
+async def openai_challenge(request):
     return PlainTextResponse("lCG1ME4nDMF4SQ5WN34e_mRcJ2671QubLKki1faFH8o")
 
-@mcp.get("/")
-async def root():
-    return {"message": "askoxy.ai Unified Server", "status": "running"}
+@mcp.custom_route("/", methods=["GET"])
+async def root(request):
+    from starlette.responses import JSONResponse
+    return JSONResponse({"message": "askoxy.ai Unified Server", "status": "running"})
 
-@mcp.get("/health")
-async def health():
-    return {"status": "healthy"}
+@mcp.custom_route("/health", methods=["GET"])
+async def health(request):
+    from starlette.responses import JSONResponse
+    return JSONResponse({"status": "healthy"})
 
 # Import all existing MCP tools
 import auth.login as login
