@@ -5,6 +5,12 @@ import os
 
 mcp = FastMCP(name="askoxy-api")
 
+# Add route for health check
+@mcp.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {"status": "healthy"}
+
 # Add route for OpenAI apps challenge
 @mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": False, "destructiveHint": False})
 async def get_openai_challenge() -> str:

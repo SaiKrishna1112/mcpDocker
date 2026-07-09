@@ -16,5 +16,9 @@ COPY . .
 
 EXPOSE 8001 8002
 
+# Health check every 10 minutes
+HEALTHCHECK --interval=10m --timeout=10s --start-period=30s --retries=3 \
+  CMD python -c "import urllib.request, os; port = os.environ.get('PORT', '8001'); urllib.request.urlopen(f'http://localhost:{port}/health')" || exit 1
+
 # Run the server (scheduler runs automatically in background)
 CMD ["uv", "run", "python", "start.py"]
