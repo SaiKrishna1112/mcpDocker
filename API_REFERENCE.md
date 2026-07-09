@@ -1,7 +1,7 @@
-# OxyLoans MCP Server - Complete API Reference
+# askoxy.ai MCP Server - Complete API Reference
 
 ## 🔧 Server Status
-- **Server Name**: oxyloans-api
+- **Server Name**: askoxy-api
 - **Transport**: SSE (Server-Sent Events)
 - **Host**: 0.0.0.0
 - **Port**: 8001

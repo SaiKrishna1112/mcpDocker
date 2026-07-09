@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Development server manager
-echo "🚀 OxyLoans MCP Server Manager"
+echo "🚀 askoxy.ai MCP Server Manager"
 echo "=============================="
 
 case "$1" in

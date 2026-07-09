@@ -434,13 +434,13 @@ async def validate_checkout(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(fetch_cart_summary)
-    mcp.tool()(get_user_addresses)
-    mcp.tool()(validate_pincode_serviceability)
-    mcp.tool()(calculate_delivery_charges)
-    mcp.tool()(get_available_coupons)
-    mcp.tool()(apply_wallet_amount)
-    mcp.tool()(fetch_delivery_slots)
-    mcp.tool()(initiate_payment)
-    mcp.tool()(confirm_payment)
-    mcp.tool()(validate_checkout)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(fetch_cart_summary)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_user_addresses)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(validate_pincode_serviceability)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": False, "destructiveHint": False})(calculate_delivery_charges)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_available_coupons)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(apply_wallet_amount)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(fetch_delivery_slots)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(initiate_payment)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": True})(confirm_payment)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(validate_checkout)

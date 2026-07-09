@@ -12,7 +12,7 @@ app = FastAPI()
 async def mcp_manifest():
     """MCP server manifest"""
     return JSONResponse({
-        "name": "OxyLoans MCP Server",
+        "name": "askoxy.ai MCP Server",
         "version": "1.0.0",
         "description": "E-commerce MCP server with product search, cart, and order management",
         "capabilities": {

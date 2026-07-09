@@ -402,11 +402,11 @@ def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
 
-    mcp.tool()(get_order_history)
-    mcp.tool()(get_order_details)
-    mcp.tool()(track_order)
-    mcp.tool()(cancel_order)
-    mcp.tool()(get_order_summary)
-    mcp.tool()(reorder_item)
-    mcp.tool()(get_cancelled_orders)
-    mcp.tool()(get_exchange_orders)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_order_history)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_order_details)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(track_order)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": True})(cancel_order)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_order_summary)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(reorder_item)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_cancelled_orders)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_exchange_orders)

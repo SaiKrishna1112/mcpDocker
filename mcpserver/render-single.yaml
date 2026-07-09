@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: oxyloans-single
+    name: askoxy-single
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python single_server.py"
@@ -8,5 +8,5 @@ services:
       - key: PORT
         fromService:
           type: web
-          name: oxyloans-single
+          name: askoxy-single
           property: port

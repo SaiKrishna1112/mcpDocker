@@ -43,4 +43,4 @@ async def simple_login(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(simple_login)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(simple_login)

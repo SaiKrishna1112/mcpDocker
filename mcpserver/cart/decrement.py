@@ -39,4 +39,4 @@ async def decrement_cart_item(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(decrement_cart_item)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(decrement_cart_item)

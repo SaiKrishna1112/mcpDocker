@@ -25,4 +25,4 @@ async def set_user_session(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(set_user_session)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False})(set_user_session)

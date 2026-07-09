@@ -1,0 +1,607 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "askoxy.ai",
+    "subtitle": "Shop products & track orders",
+    "description": "Access askoxy.ai e-commerce services directly. Discover trending items, manage your personal profile and delivery addresses, build your cart, apply coupons/wallet balances, and securely place and track your orders.",
+    "category": "SHOPPING"
+  },
+  "tools": {
+    "get_openai_challenge": {
+      "description": "Serve OpenAI apps challenge token for verification.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool simply returns a hardcoded verification token string and does not modify any state.",
+        "open_world_justification": "This tool operates entirely locally on the server and does not make any external network requests.",
+        "destructive_justification": "This tool does not delete, cancel, or irreversibly modify any user data."
+      }
+    },
+    "hello_world": {
+      "description": "Test connectivity to askoxy.ai MCP Server.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only returns a static connectivity message to confirm that the server is online and running.",
+        "open_world_justification": "This tool runs completely locally and does not interact with external endpoints or services.",
+        "destructive_justification": "This tool performs no data mutations, updates, or deletions."
+      }
+    },
+    "get_product_suggestions": {
+      "description": "Get AI-powered personalized product recommendations based on a search query.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only retrieves and filters product listings from the API without writing or modifying server state.",
+        "open_world_justification": "This tool calls the external askoxy.ai search API over HTTPS to fetch dynamic suggestions.",
+        "destructive_justification": "This tool is a read-only query and does not perform any data deletion or modify user data."
+      }
+    },
+    "send_login_otp": {
+      "description": "Sends a one-time password (OTP) via SMS or WhatsApp for user login.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool creates an OTP request record and session on the server and initiates a message transmission.",
+        "open_world_justification": "This tool interacts with external SMS and WhatsApp gateways to dispatch the OTP code to the user.",
+        "destructive_justification": "This tool only initiates a login request and does not delete or irreversibly modify any user data."
+      }
+    },
+    "verify_login_otp": {
+      "description": "Verifies the login OTP and returns session credentials.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool validates credentials and creates an active authenticated session in the backend and token store.",
+        "open_world_justification": "This tool makes a POST request to the remote user-service API to verify the OTP credentials.",
+        "destructive_justification": "This tool completes user authentication without deleting or irreversibly modifying any user data."
+      }
+    },
+    "send_register_otp": {
+      "description": "Sends a one-time password (OTP) via SMS or WhatsApp for new user registration.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool creates a new registration request and generates an OTP session in the system.",
+        "open_world_justification": "This tool dispatches the OTP to the user's mobile number via external SMS or WhatsApp messaging APIs.",
+        "destructive_justification": "This tool only starts the registration flow and does not delete or irreversibly modify user data."
+      }
+    },
+    "simple_login": {
+      "description": "Performs a simple login or registration without OTP verification.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool registers new user profiles or initiates sessions directly on the backend, mutating user database tables.",
+        "open_world_justification": "This tool communicates with the remote askoxy.ai user-service API to register or login the customer.",
+        "destructive_justification": "This tool registers or logs in a user profile without deleting or irreversibly modifying user data."
+      }
+    },
+    "set_user_session": {
+      "description": "Directly creates a session using a pre-existing user ID and access token.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool writes a new session record into the local memory/token store of the MCP server.",
+        "open_world_justification": "This tool only affects the local session state of the server and does not make external web requests.",
+        "destructive_justification": "This tool only adds a session mapping and does not delete or irreversibly modify user data."
+      }
+    },
+    "verify_otp_and_authenticate": {
+      "description": "Verifies the registration or login OTP and completes authentication.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool verifies OTP details, registers new users, and creates authenticated sessions in the backend.",
+        "open_world_justification": "This tool interacts with the remote askoxy.ai user-service API to authenticate the user.",
+        "destructive_justification": "This tool authenticates the user and creates a session without deleting or modifying any user data."
+      }
+    },
+    "add_to_cart": {
+      "description": "Adds an item to the shopping cart or increments its quantity.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool modifies the customer's cart state by adding new items or increasing quantities.",
+        "open_world_justification": "This tool calls the remote askoxy.ai cart-service API to modify the database state of the user's cart.",
+        "destructive_justification": "This tool only adds or increments items in the cart and does not delete or irreversibly modify user data."
+      }
+    },
+    "decrement_cart_item": {
+      "description": "Reduces the quantity of a specific item in the shopping cart.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool modifies the cart state by decrementing the quantity of an item.",
+        "open_world_justification": "This tool calls the remote askoxy.ai cart-service API over HTTP to reduce item counts.",
+        "destructive_justification": "This tool decrements item quantity and does not delete user data or cart items directly."
+      }
+    },
+    "remove_cart_item": {
+      "description": "Removes an item completely from the shopping cart.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This tool deletes the item entry from the user's active shopping cart, modifying cart state.",
+        "open_world_justification": "This tool sends a POST request to the remote askoxy.ai cart-service API to remove the item.",
+        "destructive_justification": "This tool deletes item records from the customer's shopping cart, which is an irreversible modification of cart data."
+      }
+    },
+    "view_user_cart": {
+      "description": "Retrieves the authenticated user's current shopping cart items and totals.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only fetches cart items and calculated pricing summary without modifying any data.",
+        "open_world_justification": "This tool fetches active cart data from the remote askoxy.ai cart-service API.",
+        "destructive_justification": "This tool is purely informational and performs no data modification or deletion."
+      }
+    },
+    "fetch_cart_summary": {
+      "description": "Fetches the user's cart summary as a single source of truth for checkout calculations.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only retrieves cart values and items without modifying any database records.",
+        "open_world_justification": "This tool communicates with the remote askoxy.ai cart-service API to retrieve checkout values.",
+        "destructive_justification": "This tool is a read-only query that does not delete or irreversibly modify any user data."
+      }
+    },
+    "get_user_addresses": {
+      "description": "Retrieves delivery addresses available for the checkout process.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool is read-only and lists stored customer addresses without altering any data.",
+        "open_world_justification": "This tool communicates with the remote user-service API to retrieve the customer's address list.",
+        "destructive_justification": "This tool is a simple data retrieval utility and does not mutate or delete user data."
+      }
+    },
+    "validate_pincode_serviceability": {
+      "description": "Checks whether delivery service is active and supported for a given pincode.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool reads the list of active pincodes to check serviceability and does not write any state.",
+        "open_world_justification": "This tool calls the external askoxy.ai order-service API to validate delivery service availability.",
+        "destructive_justification": "This tool performs a lookup query and does not delete or irreversibly modify user data."
+      }
+    },
+    "calculate_delivery_charges": {
+      "description": "Calculates delivery and handling charges based on location coordinates and cart value.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only runs calculation logic on the input parameters and does not write any state.",
+        "open_world_justification": "This tool calculates shipping fees locally based on business logic without requesting external APIs.",
+        "destructive_justification": "This tool is a computational utility and does not delete or irreversibly modify user data."
+      }
+    },
+    "get_available_coupons": {
+      "description": "Retrieves the list of coupons applicable to the customer's current checkout.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool is read-only and queries active promotional codes without altering database states.",
+        "open_world_justification": "This tool communicates with the remote askoxy.ai order-service API to fetch coupon offers.",
+        "destructive_justification": "This tool only fetches coupon information and does not modify or delete user data."
+      }
+    },
+    "apply_wallet_amount": {
+      "description": "Applies wallet or coin balance to the checkout total.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool modifies the user's active checkout session state by applying a wallet amount.",
+        "open_world_justification": "This tool sends a POST request to the remote askoxy.ai order-service API to apply the balance.",
+        "destructive_justification": "This tool applies a discount allocation and does not delete or irreversibly modify user data."
+      }
+    },
+    "fetch_delivery_slots": {
+      "description": "Retrieves available delivery dates and time range slots.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only lists available delivery time windows and does not mutate any records.",
+        "open_world_justification": "This tool calls the remote askoxy.ai order-service API to query available dispatch slots.",
+        "destructive_justification": "This tool reads schedule availability and does not modify or delete user data."
+      }
+    },
+    "initiate_payment": {
+      "description": "Initiates the payment transaction process for the checkout order.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool creates a new payment transaction entry in the backend system, changing checkout state.",
+        "open_world_justification": "This tool makes a POST request to the external askoxy.ai order-service API to register a transaction.",
+        "destructive_justification": "This tool initiates a transaction request and does not delete or irreversibly modify user data."
+      }
+    },
+    "confirm_payment": {
+      "description": "Confirms payment transaction success and creates the corresponding order.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This tool completes the transaction, creates order records, and clears the user's shopping cart.",
+        "open_world_justification": "This tool sends payment confirmation events to the remote order-service API to finalize the checkout.",
+        "destructive_justification": "This tool completes payment, which irreversibly clears the user's cart, deducts wallet balance, and creates an order."
+      }
+    },
+    "validate_checkout": {
+      "description": "Performs final comprehensive validations before placing the order.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only performs safety and serviceability checks on the cart and address without writing state.",
+        "open_world_justification": "This tool aggregates verification requests across several remote askoxy.ai APIs.",
+        "destructive_justification": "This tool is a read-only validation check and does not modify or delete user data."
+      }
+    },
+    "get_order_history": {
+      "description": "Retrieves the customer's previous orders and status history.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only fetches historical order records and does not change database states.",
+        "open_world_justification": "This tool fetches order archives from the remote askoxy.ai order-service API.",
+        "destructive_justification": "This tool is read-only and does not delete or irreversibly modify user data."
+      }
+    },
+    "get_order_details": {
+      "description": "Retrieves detailed item and status information for a specific order.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only queries order and address tables without writing or modifying records.",
+        "open_world_justification": "This tool requests details from the remote askoxy.ai order-service API for a given order ID.",
+        "destructive_justification": "This tool is a details query and does not delete or irreversibly modify user data."
+      }
+    },
+    "track_order": {
+      "description": "Retrieves tracking information and delivery status updates for an order.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only queries tracking logs and delivery updates without mutating state.",
+        "open_world_justification": "This tool communicates with the remote order-service tracking API to fetch current logistics info.",
+        "destructive_justification": "This tool retrieves delivery tracking data and does not delete or irreversibly modify user data."
+      }
+    },
+    "cancel_order": {
+      "description": "Cancels an eligible order based on the cancelation policy.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This tool alters database records by changing the status of an active order to cancelled.",
+        "open_world_justification": "This tool calls the remote askoxy.ai order-service cancellation API over HTTPS.",
+        "destructive_justification": "This tool cancels an active order, which irreversibly changes the order status and initiates refunds."
+      }
+    },
+    "get_order_summary": {
+      "description": "Retrieves cart items and order summary details for checkout.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool reads current customer cart details and summaries without making any changes.",
+        "open_world_justification": "This tool requests checkout summary information from the remote cart-service API.",
+        "destructive_justification": "This tool fetches shopping cart summary data and does not modify or delete user data."
+      }
+    },
+    "reorder_item": {
+      "description": "Adds a previously ordered item back into the user's active shopping cart.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool modifies the customer's cart state by adding the selected item.",
+        "open_world_justification": "This tool sends a POST request to the remote cart-service API to update active cart entries.",
+        "destructive_justification": "This tool adds items to the cart and does not delete or irreversibly modify user data."
+      }
+    },
+    "get_cancelled_orders": {
+      "description": "Retrieves the list of cancelled orders for the customer.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool only retrieves historical logs of cancelled orders and does not change database records.",
+        "open_world_justification": "This tool calls the remote askoxy.ai order-service cancel list endpoint.",
+        "destructive_justification": "This tool is a read-only log fetcher and does not perform data deletions or modifications."
+      }
+    },
+    "get_exchange_orders": {
+      "description": "Retrieves the list of exchange orders for the customer.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool reads the customer's product exchange requests list without modifying database states.",
+        "open_world_justification": "This tool calls the remote order-service exchange API to list exchange records.",
+        "destructive_justification": "This tool performs a lookup of exchange records and does not delete or irreversibly modify user data."
+      }
+    },
+    "check_order_conditions": {
+      "description": "Validates cart and order constraints before order checkout.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool is read-only and verifies constraints on cart value and address without writing state.",
+        "open_world_justification": "This tool communicates with remote cart and user address APIs to check checkout readiness.",
+        "destructive_justification": "This tool is a check mechanism and does not perform any data deletions or modifications."
+      }
+    },
+    "check_delivery_availability": {
+      "description": "Checks serviceability and delivery options for a given destination pincode.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool checks delivery zone tables for service availability and does not write records.",
+        "open_world_justification": "This tool requests delivery availability details from the remote askoxy.ai delivery-service API.",
+        "destructive_justification": "This tool checks pincode eligibility and does not modify or delete user data."
+      }
+    },
+    "place_order": {
+      "description": "Places an order after checking conditions and cart details.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This tool creates a new order in the database and updates cart status, modifying state.",
+        "open_world_justification": "This tool calls the remote order-service place order API to submit order payloads.",
+        "destructive_justification": "This tool creates a binding purchase order in the user profile and irreversibly modifies cart state."
+      }
+    },
+    "get_combo_item_details": {
+      "description": "Fetches combo offer item definitions and pricing details.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool reads package/combo definitions from the database and does not modify any state.",
+        "open_world_justification": "This tool calls the remote product-service combo API to fetch specific bundle information.",
+        "destructive_justification": "This tool only reads package combinations and does not modify or delete user data."
+      }
+    },
+    "get_product_images": {
+      "description": "Fetches image URLs associated with a product item ID.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool performs read-only lookups on product assets and does not write state.",
+        "open_world_justification": "This tool requests product image directories from the remote askoxy.ai product-service.",
+        "destructive_justification": "This tool only retrieves item image metadata and does not modify or delete user data."
+      }
+    },
+    "get_trending_products": {
+      "description": "Retrieves popular trending products from the public catalog.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool reads product views and catalog records without writing or changing state.",
+        "open_world_justification": "This tool fetches catalog lists from the public remote askoxy.ai product-service endpoint.",
+        "destructive_justification": "This tool is a public read-only catalog query and does not delete or modify user data."
+      }
+    },
+    "dynamic_product_search": {
+      "description": "Searches the product catalog using keywords.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool performs catalog keyword searches without writing any records or state.",
+        "open_world_justification": "This tool requests dynamic searches from the remote askoxy.ai product-service API.",
+        "destructive_justification": "This tool performs read-only database search queries and does not delete or modify user data."
+      }
+    },
+    "view_address_list": {
+      "description": "Retrieves saved delivery addresses for the authenticated user.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool lists saved addresses without writing or changing user records.",
+        "open_world_justification": "This tool retrieves stored addresses from the remote askoxy.ai user-service.",
+        "destructive_justification": "This tool lists user address files and does not modify or delete user data."
+      }
+    },
+    "add_address": {
+      "description": "Saves a new delivery address after resolving coordinates.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool adds a new address record to the customer profile database.",
+        "open_world_justification": "This tool invokes Google Maps API for geocoding and calls user-service API to save the address.",
+        "destructive_justification": "This tool adds user profile records and does not delete or irreversibly modify user data."
+      }
+    },
+    "get_customer_profile": {
+      "description": "Retrieves profile details for the authenticated customer.",
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool reads user registration and account details without writing any state.",
+        "open_world_justification": "This tool queries customer profile details from the remote askoxy.ai user-service.",
+        "destructive_justification": "This tool is a read-only account query and does not delete or modify user data."
+      }
+    },
+    "update_customer_profile": {
+      "description": "Updates personal profile information for the customer.",
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This tool modifies name, email, and contact fields in the customer database record.",
+        "open_world_justification": "This tool sends profile update requests to the remote askoxy.ai user-service API.",
+        "destructive_justification": "This tool overwrites existing contact details with updated info, but does not delete profile accounts."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Retrieve popular trending items from the store's public catalog without authentication.",
+      "user_prompt": "Show me the trending products in the store.",
+      "tools_triggered": "get_trending_products",
+      "expected_output": "A list of popular items containing names, prices, MRPs, images, and category groupings."
+    },
+    {
+      "description": "Add a specific grocery product to the customer's active shopping cart.",
+      "user_prompt": "Add milk to my cart. The product ID is item_102 and I want 2 of them.",
+      "tools_triggered": "add_to_cart",
+      "expected_output": "A success message confirming that the item has been added or incremented in the cart."
+    },
+    {
+      "description": "Fetch order history for the currently logged-in customer.",
+      "user_prompt": "Show my previous orders.",
+      "tools_triggered": "get_order_history",
+      "expected_output": "A list of past orders with detailed info such as payment methods, totals, dates, and order status."
+    },
+    {
+      "description": "Track the current delivery status of an active customer order.",
+      "user_prompt": "Track my latest order. The order ID is order_5001.",
+      "tools_triggered": "track_order",
+      "expected_output": "A status report indicating the current tracking step, logistics partner, and expected delivery date."
+    },
+    {
+      "description": "Verify if the delivery service serves a specific destination postal code.",
+      "user_prompt": "Check if delivery is available for pincode 560001.",
+      "tools_triggered": "check_delivery_availability",
+      "expected_output": "Confirmation that delivery is available, with estimated shipping charges and timeline."
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Attempt to modify cart contents when not logged in.",
+      "user_prompt": "Add milk to my cart.",
+      "expected_output": "An authentication error indicating the session is invalid and login is required."
+    },
+    {
+      "description": "Attempt to cancel a transaction using a non-existent order ID.",
+      "user_prompt": "Cancel order order_99999.",
+      "expected_output": "An error response stating that the order was not found or is ineligible for cancellation."
+    },
+    {
+      "description": "Attempt to check serviceability using an incorrectly formatted pincode.",
+      "user_prompt": "Can you deliver to pincode abcde?",
+      "expected_output": "A validation error indicating that the pincode format is invalid."
+    }
+  ]
+}

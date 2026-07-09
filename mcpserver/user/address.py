@@ -166,5 +166,5 @@ async def add_address(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(view_address_list)
-    mcp.tool()(add_address)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(view_address_list)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(add_address)

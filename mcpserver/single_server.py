@@ -8,7 +8,7 @@ from fastapi.responses import PlainTextResponse
 import os
 
 # Create unified MCP server
-mcp = FastMCP(name="oxyloans-unified")
+mcp = FastMCP(name="askoxy-unified")
 
 # Add web endpoints directly to FastMCP
 @mcp.get("/.well-known/openai-apps-challenge")
@@ -17,7 +17,7 @@ async def openai_challenge():
 
 @mcp.get("/")
 async def root():
-    return {"message": "OxyLoans Unified Server", "status": "running"}
+    return {"message": "askoxy.ai Unified Server", "status": "running"}
 
 @mcp.get("/health")
 async def health():

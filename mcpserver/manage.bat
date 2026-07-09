@@ -1,5 +1,5 @@
 @echo off
-echo 🚀 OxyLoans MCP Server Manager
+echo 🚀 askoxy.ai MCP Server Manager
 echo ==============================
 
 if "%1"=="web" (

@@ -34,4 +34,4 @@ async def remove_cart_item(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(remove_cart_item)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": True})(remove_cart_item)

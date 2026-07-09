@@ -46,4 +46,4 @@ async def get_combo_item_details(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(get_combo_item_details)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_combo_item_details)

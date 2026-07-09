@@ -3,10 +3,10 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
 
-mcp = FastMCP(name="oxyloans-api")
+mcp = FastMCP(name="askoxy-api")
 
 # Add route for OpenAI apps challenge
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": False, "destructiveHint": False})
 async def get_openai_challenge() -> str:
     """Serve OpenAI apps challenge token for verification"""
     return "lCG1ME4nDMF4SQ5WN34e_mRcJ2671QubLKki1faFH8o"
@@ -21,17 +21,17 @@ class ProductSuggestion(BaseModel):
     why_recommended: str
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": False, "destructiveHint": False})
 async def hello_world() -> str:
-    """Test connectivity to OxyLoans MCP Server."""
-    return "OxyLoans MCP Server is running!"
+    """Test connectivity to askoxy.ai MCP Server."""
+    return "askoxy.ai MCP Server is running!"
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})
 async def get_product_suggestions(
     query: str = Field(..., min_length=1, description="Product search query"),
     budget: float = Field(1000.0, gt=0, description="Maximum budget in INR")
 ) -> List[ProductSuggestion]:
-    """Get AI-powered product suggestions using OxyLoans API."""
+    """Get AI-powered product suggestions using askoxy.ai API."""
     from auth.token_store import get_token_by_session
     from utils.http import get
     
@@ -291,6 +291,6 @@ order_checkout.register_tools(mcp)
 
 
 if __name__ == "__main__":
-    print(f"✅ MCP Server configured")
+    print(f"✅ askoxy.ai MCP Server configured")
     print(f"✅ Challenge token available via get_openai_challenge tool")
     mcp.run(transport="sse", host="0.0.0.0", port=8001)

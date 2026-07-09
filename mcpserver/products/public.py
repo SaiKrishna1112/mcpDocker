@@ -51,4 +51,4 @@ async def get_trending_products(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(get_trending_products)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_trending_products)

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: oxyloans-unified
+    name: askoxy-unified
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python unified_server.py"
@@ -8,5 +8,5 @@ services:
       - key: PORT
         fromService:
           type: web
-          name: oxyloans-unified
+          name: askoxy-unified
           property: port

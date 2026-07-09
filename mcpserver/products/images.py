@@ -18,4 +18,4 @@ async def get_product_images(item_id: str) -> list[ProductImage]:
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(get_product_images)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_product_images)

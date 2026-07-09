@@ -227,6 +227,6 @@ async def place_order(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(check_order_conditions)
-    mcp.tool()(check_delivery_availability)
-    mcp.tool()(place_order)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(check_order_conditions)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(check_delivery_availability)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": True})(place_order)

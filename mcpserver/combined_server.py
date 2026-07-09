@@ -24,7 +24,7 @@ async def openai_apps_challenge():
 @web_app.get("/")
 async def root():
     """Root endpoint"""
-    return {"message": "OxyLoans Combined Server", "mcp_status": "running", "web_status": "running"}
+    return {"message": "askoxy.ai Combined Server", "mcp_status": "running", "web_status": "running"}
 
 @web_app.get("/health")
 async def health():

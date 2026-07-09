@@ -90,4 +90,4 @@ async def verify_otp_and_authenticate(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(verify_otp_and_authenticate)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(verify_otp_and_authenticate)

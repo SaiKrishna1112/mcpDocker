@@ -11,10 +11,10 @@ import uvicorn
 import os
 
 # Create FastMCP instance
-mcp = FastMCP(name="oxyloans-api")
+mcp = FastMCP(name="askoxy-api")
 
 # Create FastAPI app for web endpoints
-web_app = FastAPI(title="OxyLoans Web Server")
+web_app = FastAPI(title="askoxy.ai Web Server")
 
 @web_app.get("/.well-known/openai-apps-challenge")
 async def openai_challenge():
@@ -22,7 +22,7 @@ async def openai_challenge():
 
 @web_app.get("/")
 async def root():
-    return {"message": "OxyLoans Unified Server", "mcp": "running", "web": "running"}
+    return {"message": "askoxy.ai Unified Server", "mcp": "running", "web": "running"}
 
 @web_app.get("/health")
 async def health():

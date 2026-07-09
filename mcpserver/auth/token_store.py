@@ -5,7 +5,7 @@ from typing import Dict
 from pathlib import Path
 
 # Persistent storage file
-STORAGE_FILE = Path.home() / ".oxyloans_sessions.json"
+STORAGE_FILE = Path.home() / ".askoxy_sessions.json"
 
 def _load_storage():
     if STORAGE_FILE.exists():

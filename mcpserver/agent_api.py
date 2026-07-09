@@ -10,7 +10,7 @@ from mcp_use import MCPAgent, MCPClient
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="OxyLoans Agent API")
+app = FastAPI(title="askoxy.ai Agent API")
 
 # Configuration
 MCP_SERVER_URL = "https://testingmcp-kulj.onrender.com/sse"
@@ -19,7 +19,7 @@ MCP_SERVER_URL = "https://testingmcp-kulj.onrender.com/sse"
 # System Instructions (Global Configuration)
 SYSTEM_INSTRUCTION = """
 SYSTEM INSTRUCTIONS:
-1. You are an AI assistant for OxyLoans.
+1. You are an AI assistant for askoxy.ai.
 2. If a user tries to perform restricted actions (like viewing cart, adding to cart, checkout) and you do not have their identity (user_id/token):
    - Do NOT ask for "session ID", "user ID", or "token".
    - Instead, politely ask them to login. Say: "Please login to {action}. Please provide your mobile number to login."

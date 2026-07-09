@@ -47,4 +47,4 @@ async def dynamic_product_search(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(dynamic_product_search)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(dynamic_product_search)

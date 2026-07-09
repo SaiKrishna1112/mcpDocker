@@ -129,5 +129,5 @@ async def update_customer_profile(
 def register_tools(mcp_instance):
     global mcp
     mcp = mcp_instance
-    mcp.tool()(get_customer_profile)
-    mcp.tool()(update_customer_profile)
+    mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True, "destructiveHint": False})(get_customer_profile)
+    mcp.tool(annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False})(update_customer_profile)
