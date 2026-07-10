@@ -12,7 +12,11 @@ from datetime import datetime
 async def ping_server():
     """Send health check to keep server active"""
     port = os.environ.get("PORT", "8001")
-    url = os.environ.get("SERVER_URL", f"http://localhost:{port}")
+    url = os.environ.get("SERVER_URL") or os.environ.get("RENDER_EXTERNAL_URL")
+    if url:
+        url = url.rstrip("/")
+    else:
+        url = f"http://localhost:{port}"
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.get(f"{url}/health")
