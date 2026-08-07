@@ -12,7 +12,10 @@ def _infer_output_schema(fn):
         return_type = get_type_hints(fn, include_extras=True).get("return")
         if return_type is None:
             return None
-        return TypeAdapter(return_type).json_schema()
+        schema = TypeAdapter(return_type).json_schema()
+        if schema.get("type") != "object" and "properties" not in schema:
+            return None
+        return schema
     except Exception:
         return None
 
