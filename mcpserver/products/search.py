@@ -1,7 +1,6 @@
-from typing import List, Optional, Any
+﻿from typing import List, Any
 from pydantic import BaseModel, Field
 from utils.http import get
-from auth.token_store import get_token_by_session
 
 mcp = None
 
@@ -21,22 +20,16 @@ class DynamicSearchResponse(BaseModel):
 
 async def dynamic_product_search(
     q: str = Field(..., min_length=1, description="Search keyword"),
-    session_id: str = Field(..., description="User session ID"),
 ) -> DynamicSearchResponse:
     """
-    Search products dynamically and return ONLY the items array.
+    Search products dynamically and return the items array.
     """
-
-    token = get_token_by_session(session_id)
-    if not token:
-        raise ValueError("Invalid session")
 
     data = await get(
         "/product-service/dynamicSearch",
         params={"q": q},
     )
 
-    # ✅ Return only items array
     return DynamicSearchResponse(
         query=q,
         items=data.get("items", []),

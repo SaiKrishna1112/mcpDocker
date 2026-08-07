@@ -1,10 +1,36 @@
-from fastmcp import FastMCP
-from pydantic import BaseModel, Field
-from typing import List, Optional
+﻿from fastmcp import FastMCP
+from pydantic import BaseModel, Field, TypeAdapter
+from typing import List, Optional, get_type_hints
 import os
 
 mcp = FastMCP(name="askoxy-api")
 
+_original_tool = mcp.tool
+
+def _infer_output_schema(fn):
+    try:
+        return_type = get_type_hints(fn, include_extras=True).get("return")
+        if return_type is None:
+            return None
+        return TypeAdapter(return_type).json_schema()
+    except Exception:
+        return None
+
+def _tool_with_output_schema(*tool_args, **tool_kwargs):
+    def _decorate(fn):
+        call_kwargs = dict(tool_kwargs)
+        if call_kwargs.get("output_schema") is None:
+            output_schema = _infer_output_schema(fn)
+            if output_schema is not None:
+                call_kwargs["output_schema"] = output_schema
+        return _original_tool(*tool_args, **call_kwargs)(fn)
+
+    if tool_args and callable(tool_args[0]) and len(tool_args) == 1 and not tool_kwargs:
+        return _decorate(tool_args[0])
+
+    return _decorate
+
+mcp.tool = _tool_with_output_schema
 # Add route for health check
 @mcp.custom_route("/health", methods=["GET"])
 async def health(request):
@@ -39,18 +65,12 @@ async def get_product_suggestions(
     budget: float = Field(1000.0, gt=0, description="Maximum budget in INR")
 ) -> List[ProductSuggestion]:
     """Get AI-powered product suggestions using askoxy.ai API."""
-    from auth.token_store import get_token_by_session
     from utils.http import get
-    
-    token = get_token_by_session(query)
-    if not token:
-        raise ValueError("Invalid session. Please login first.")
-    
+
     try:
         data = await get(
             "/api/product-service/dynamicSearch",
             params={"q": query},
-            bearer_token=token
         )
         
         suggestions = []
@@ -301,3 +321,5 @@ if __name__ == "__main__":
     print(f"✅ askoxy.ai MCP Server configured")
     print(f"✅ Challenge token available via get_openai_challenge tool")
     mcp.run(transport="sse", host="0.0.0.0", port=8001)
+
+
